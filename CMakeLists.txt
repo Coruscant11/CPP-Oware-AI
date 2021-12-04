@@ -3,4 +3,7 @@ project(AwaleCustom)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(AwaleCustom main.cpp)
+add_executable(AwaleCustom
+        main.cpp
+        Board.cpp
+        Board.h)
