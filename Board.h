@@ -21,15 +21,21 @@ public:
     //
     bool* getPossibleMove(int player);
 
+    bool checkFamine(int player);
+    bool checkHasMoreThanHalfSeeds(int player);
+    bool checkLessHeightSeed();
+
+    bool isWinning(int player);
+    bool isLoosing(int player);
+    bool draw();
+
 private:
     int redHoles[16];
     int blueHoles[16];
 
     int playersAttic[2];
 
-    bool checkFamine(int player);
-    bool checkHasHalfSeeds(int player);
-    bool checkLessHeightSeed()
+
 
 
 

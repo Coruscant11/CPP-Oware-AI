@@ -74,7 +74,6 @@ int Board::pickSeed(int lastHole, int chosenHole) {
         // Update the hole
         currentHole --;
         if (currentHole == -1) currentHole = 12;
-
         nbBlueSeed = blueHoles[currentHole];
         nbRedSeed = redHoles[currentHole];
     }
@@ -104,6 +103,7 @@ bool* Board::getPossibleMove(int player) {
     return possibleMoves;
 }
 
+// Regarde si un joueur est en famine
 bool Board::checkFamine(int player) {
     for (int i=player; i<16; i+=2){
         if (blueHoles[i]+redHoles[i] != 0){
@@ -113,7 +113,8 @@ bool Board::checkFamine(int player) {
     return true;
 }
 
-bool Board::checkHasHalfSeeds(int player) {
+// Regarde si un joueur a plus de la moitié des graines
+bool Board::checkHasMoreThanHalfSeeds(int player) {
     if (playersAttic[player] >= 33){
         return true;
     }
@@ -122,6 +123,7 @@ bool Board::checkHasHalfSeeds(int player) {
     }
 }
 
+// Regarde si le jeu contient 8 ou moins graines
 bool Board::checkLessHeightSeed(){
     int nbTotalSeed = 0;
     for (int i=0; i<16; i++){
@@ -134,5 +136,40 @@ bool Board::checkLessHeightSeed(){
         return false;
     }
 }
+
+bool Board::isLoosing(int player) {
+    if (checkFamine(player)                     // Famine du joueur
+    || checkHasMoreThanHalfSeeds((player + 1) % 2)      // Joueur adverse a plus de 33 graines
+    || (checkLessHeightSeed() && playersAttic[player] < playersAttic[(player + 1) % 2]) // Moins de 8 graines dans le jeu et moins de graine que l'adversaire
+    ){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+bool Board::isWinning(int player) {
+    if (checkFamine((player + 1) %2)        // Joueur adverse en famine
+    || checkHasMoreThanHalfSeeds(player)    // joueur a plus de 33 graines
+    || (checkLessHeightSeed() && playersAttic[player] > playersAttic[(player + 1) % 2]) // Moins de 8 graines dans le jeu et plus de graines que l'adversaire
+    ){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+bool Board::draw() {
+    if (checkLessHeightSeed() && playersAttic[0] == 32 == playersAttic[1]){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+
 
 
