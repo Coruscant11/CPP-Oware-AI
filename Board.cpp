@@ -17,13 +17,27 @@ Board::Board() {
     this->playersAttic[1] = 0;
 }
 
+Board::~Board() {}
+
 string Board::printBoard() {
     //TODO
     // Trou 1 en haut a gauche jusqu'au 8
     // Trou 9 en bas a droite (en dessous de 8)
     // puis vers la gauche jusqu'a 16 (en desous du 1)
     stringstream ss;
-    ss << "Print the board" << endl;
+    ss << endl;
+
+    for (int i=0; i<16; i++){
+        ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
+        if (i == 7){
+            ss << endl;
+        }
+    }
+    ss << endl;
+    ss << "J1 Attic: " << playersAttic[1] << endl;
+    ss << "J2 Attic: " << playersAttic[0] << endl;
+
+    return ss.str();
 }
 
 // Distribute only on opponent hole
