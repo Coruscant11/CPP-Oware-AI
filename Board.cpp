@@ -3,6 +3,10 @@
 
 using namespace std;
 
+// Convention: (pour l'instant)
+// J1 a les case impair donc pair dans le tableau et l'attic 1
+// J2 a les cases pair donc impair dans le tableau et l'attic 0
+
 Board::Board() {
     // J'ai trouvé cette technique pour initialiser les trous
     // si tu trouve mieux je t'en pris
@@ -27,11 +31,12 @@ string Board::printBoard() {
     stringstream ss;
     ss << endl;
 
-    for (int i=0; i<16; i++){
+    for (int i=0; i<8; i++){
         ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
-        if (i == 7){
-            ss << endl;
-        }
+    }
+    ss << endl;
+    for (int i= 15; i>7; i--){
+        ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
     }
     ss << endl;
     ss << "J1 Attic: " << playersAttic[1] << endl;
@@ -74,9 +79,6 @@ int Board::pickSeed(int lastHole, int chosenHole) {
     int nbRedSeed = redHoles[currentHole];
     int nbTotalSeed = 0;
     while ((nbRedSeed+ nbBlueSeed) == 2 || (nbRedSeed + nbBlueSeed) == 3){
-        // Convention si ça te va
-        // Le joueur 0 possède le grenier 0 et les trou pair
-        // Le joueur 1 possède le grenier 1 et les trous impair
 
         // Update board
         redHoles[currentHole] = 0;
@@ -92,17 +94,14 @@ int Board::pickSeed(int lastHole, int chosenHole) {
         nbRedSeed = redHoles[currentHole];
     }
     // Ajouter les seed dans le grenier
-    playersAttic[chosenHole % 2] = nbTotalSeed;
+    playersAttic[(chosenHole + 1)  % 2] = nbTotalSeed;
     return nbTotalSeed;
 }
 
-// Convention si ça te va
-// Le joueur 0 possède le grenier 0 et les trou pair
-// Le joueur 1 possède le grenier 1 et les trous impair
 bool* Board::getPossibleMove(int player) {
-    bool* possibleMoves;
+    bool possibleMoves[16];
     for (int i=0; i<16; i++){
-        if (i % 2 == player){
+        if ((i + 1) % 2 == player){
             if (blueHoles[i]+redHoles[i] == 0){
                 possibleMoves[i] = false;
             }

@@ -5,6 +5,10 @@
 
 using namespace std;
 
+// Convention: (pour l'instant)
+// J1 a les case impair donc pair dans le tableau et l'attic 1
+// J2 a les cases pair donc impair dans le tableau et l'attic 0
+
 class Board {
 public:
     Board();
