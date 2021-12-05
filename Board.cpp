@@ -98,22 +98,55 @@ int Board::pickSeed(int lastHole, int chosenHole) {
     return nbTotalSeed;
 }
 
-bool* Board::getPossibleMove(int player) {
-    bool possibleMoves[16];
+bool* Board::getPossibleRedMove(int player) {
+    bool possibleRedMoves[16];
     for (int i=0; i<16; i++){
         if ((i + 1) % 2 == player){
-            if (blueHoles[i]+redHoles[i] == 0){
-                possibleMoves[i] = false;
+            if (redHoles[i] == 0){
+                possibleRedMoves[i] = false;
             }
             else{
-                possibleMoves[i] = true;
+                possibleRedMoves[i] = true;
             }
         }
-        else{
-            possibleMoves[i] = false;
+    }
+    return possibleRedMoves;
+}
+
+bool* Board::getPossibleBlueMove(int player) {
+    bool possibleBlueMoves[16];
+    for (int i=0; i<16; i++){
+        if ((i + 1) % 2 == player){
+            if (blueHoles[i] == 0){
+                possibleBlueMoves[i] = false;
+            }
+            else{
+                possibleBlueMoves[i] = true;
+            }
         }
     }
-    return possibleMoves;
+    return possibleBlueMoves;
+}
+
+bool Board::isPossibleMove(int player, int move, char color){
+    if (move >= 16){
+        return false;
+    }
+    if ((move + 1) % 2 == player) {
+        if (color == 'B') {
+            if (blueHoles[move] != 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (color == 'R') {
+            if (redHoles[move] != 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 }
 
 // Regarde si un joueur est en famine

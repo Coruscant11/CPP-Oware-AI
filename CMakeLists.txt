@@ -6,4 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 add_executable(AwaleCustom
         main.cpp
         Board.cpp
-        Board.h)
+        Board.h
+        AI.cpp
+        AI.h)

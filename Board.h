@@ -23,7 +23,9 @@ public:
     int pickSeed(int lastHole, int chosenHole);
 
     //
-    bool* getPossibleMove(int player);
+    bool* getPossibleBlueMove(int player);
+    bool* getPossibleRedMove(int player);
+    bool isPossibleMove(int player, int move, char color);
 
     bool checkFamine(int player);
     bool checkHasMoreThanHalfSeeds(int player);
