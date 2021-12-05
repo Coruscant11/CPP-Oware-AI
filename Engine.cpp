@@ -79,7 +79,7 @@ int Engine::getNextPlayer(int previousPlayer) {
 
 void Engine::displayWinner(int winner) {
 	cout << endl << endl;
-	if (winner == 3) {
+	if (winner == 2) {
 		cout << "It's a draw !" << endl;
 	}
 	else if (winner == 0 || winner == 1) {
