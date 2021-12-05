@@ -142,7 +142,7 @@ int Board::checkWin() {
     }
 
     if (checkLessHeightSeed()) {
-        if (playersAttic[0] == playersAttic[1]) return 3;
+        if (playersAttic[0] == playersAttic[1]) return 2;
         else return playersAttic[0] > playersAttic[1] ? 0 : 1;
     }
 
