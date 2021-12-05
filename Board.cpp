@@ -1,7 +1,7 @@
 #include <sstream>
+#include <iostream>
+#include <stdlib.h>
 #include "Board.h"
-
-using namespace std;
 
 // Convention: (pour l'instant)
 // J1 a les case impair donc pair dans le tableau et l'attic 1
@@ -23,7 +23,7 @@ Board::Board() {
 
 Board::~Board() {}
 
-string Board::printBoard() {
+void Board::printBoard() {
     //TODO
     // Trou 1 en haut a gauche jusqu'au 8
     // Trou 9 en bas a droite (en dessous de 8)
@@ -42,7 +42,7 @@ string Board::printBoard() {
     ss << "J1 Attic: " << playersAttic[1] << endl;
     ss << "J2 Attic: " << playersAttic[0] << endl;
 
-    return ss.str();
+    cout << ss.str() << endl;
 }
 
 // Distribute only on opponent hole
@@ -88,8 +88,7 @@ int Board::pickSeed(int lastHole, int chosenHole) {
         nbTotalSeed = nbTotalSeed + nbRedSeed + nbBlueSeed;
 
         // Update the hole
-        currentHole --;
-        if (currentHole == -1) currentHole = 12;
+        currentHole = (currentHole - 1) % 16;
         nbBlueSeed = blueHoles[currentHole];
         nbRedSeed = redHoles[currentHole];
     }
@@ -99,7 +98,7 @@ int Board::pickSeed(int lastHole, int chosenHole) {
 }
 
 bool* Board::getPossibleMove(int player) {
-    bool possibleMoves[16];
+    bool* possibleMoves = (bool *) malloc(16 * sizeof(bool));
     for (int i=0; i<16; i++){
         if ((i + 1) % 2 == player){
             if (blueHoles[i]+redHoles[i] == 0){
@@ -145,7 +144,7 @@ bool Board::checkLessHeightSeed(){
     if (nbTotalSeed < 8){
         return true;
     }
-    else{
+    else {
         return false;
     }
 }

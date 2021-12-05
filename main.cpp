@@ -1,15 +1,8 @@
 #include <iostream>
-#include "Board.h"
+#include "Engine.h"
 
 int main() {
-
-    Board board = Board();
-    cout << board.printBoard() << endl;
-    board.distributeBlueSeed(15);
-    cout << board.printBoard() << endl;
-    board.pickSeed(15, 7);
-    cout << board.printBoard() << endl;
-
-
+    Engine e;
+    e.run();
     return 0;
 }
