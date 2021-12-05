@@ -29,6 +29,17 @@ Board::Board() {
     this->playersAttic[1] = 0;
 }
 
+Board::Board(const Board &b) {
+    for (int i=0; i<16; i++){
+        this->blueHoles[i] = b.blueHoles[i];
+        this->redHoles[i] = b.redHoles[i];
+    }
+
+    // Player attic
+    this->playersAttic[0] = b.blueHoles[0];
+    this->playersAttic[1] = b.redHoles[1];
+}
+
 Board::~Board() {}
 
 void Board::printBoard() {

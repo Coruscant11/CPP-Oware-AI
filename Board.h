@@ -10,6 +10,7 @@ using namespace std;
 class Board {
 public:
     Board();
+    Board(const Board &b);
     ~Board();
 
     // Print the board
