@@ -1,8 +1,6 @@
 #ifndef AWALECUSTOM_BOARD_H
 #define AWALECUSTOM_BOARD_H
 
-#include <string>
-
 using namespace std;
 
 // Convention: (pour l'instant)
@@ -12,10 +10,11 @@ using namespace std;
 class Board {
 public:
     Board();
+    Board(const Board &b);
     ~Board();
 
     // Print the board
-    string printBoard();
+    void printBoard();
 
     // Distribute and steal seed
     int distributeBlueSeed(int chosenHole);
@@ -25,9 +24,11 @@ public:
     //
     bool* getPossibleMove(int player);
 
+    int checkWin();
     bool checkFamine(int player);
     bool checkHasMoreThanHalfSeeds(int player);
     bool checkLessHeightSeed();
+    void giveAllSeedsToPlayer(int player);
 
     bool isWinning(int player);
     bool isLoosing(int player);
@@ -38,11 +39,6 @@ private:
     int blueHoles[16];
 
     int playersAttic[2];
-
-
-
-
-
 };
 
 

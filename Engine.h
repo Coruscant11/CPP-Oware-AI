@@ -1,0 +1,26 @@
+#pragma once
+
+#include "Board.h"
+
+using namespace std;
+
+struct Choice {
+	int hole;
+	char color;
+};
+
+class Engine {
+public:
+	Engine();
+	
+	void run();
+	int getNextPlayer();
+	static int getNextPlayer(int previousPlayer);
+private:
+	Board gameBoard;
+	int actualPlayer;
+
+	struct Choice askChoice(int player);
+	void updateActualPlayer();
+	void displayWinner(int winner);
+};
