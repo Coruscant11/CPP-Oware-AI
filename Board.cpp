@@ -31,13 +31,17 @@ void Board::printBoard() {
     stringstream ss;
     ss << endl;
 
+    for (int i = 1; i <= 8; i++) { ss << "   " << i << "    "; }
+    ss << endl;
     for (int i=0; i<8; i++){
         ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
     }
-    ss << endl;
+    ss << endl << endl;;
     for (int i= 15; i>7; i--){
         ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
     }
+    ss << endl;
+    for (int i = 16; i >= 9; i--) { ss << "  " << i << "    "; }
     ss << endl;
     ss << "J1 Attic: " << playersAttic[1] << endl;
     ss << "J2 Attic: " << playersAttic[0] << endl;

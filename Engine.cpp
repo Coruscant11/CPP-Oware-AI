@@ -16,14 +16,15 @@ void Engine::run() {
 		int lastHole;
 
 		if (choice.color == 'B') {
-			gameBoard.distributeBlueSeed(choice.hole);
+			lastHole = gameBoard.distributeBlueSeed(choice.hole);
 		}
 		else if (choice.color == 'R') {
-			gameBoard.distributeRedSeed(choice.hole);
+			lastHole = gameBoard.distributeRedSeed(choice.hole);
 		}
 	
 		gameBoard.pickSeed(lastHole, choice.hole);
 		updateActualPlayer();
+		cout << endl;
 	}
 }
 
