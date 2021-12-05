@@ -2,6 +2,14 @@
 #include <iostream>
 #include <stdlib.h>
 #include "Board.h"
+#include "Engine.h"
+
+
+#define cRESET   "\033[0m"
+#define cRED     "\033[31m"      
+#define cBLUE    "\033[34m"      
+#define cYELLOW  "\033[33m"
+#define cGREEN   "\033[32m" 
 
 // Convention: (pour l'instant)
 // J1 a les case impair donc pair dans le tableau et l'attic 1
@@ -31,20 +39,28 @@ void Board::printBoard() {
     stringstream ss;
     ss << endl;
 
-    for (int i = 1; i <= 8; i++) { ss << "   " << i << "    "; }
+    for (int i = 1; i <= 8; i++) { 
+        ss << "   "; 
+        if (i%2 == 0) ss << cYELLOW << i << "    " << cRESET; 
+        else ss << cGREEN << i << "    " << cRESET; 
+    }
     ss << endl;
     for (int i=0; i<8; i++){
-        ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
+        ss << "[" << cRED << redHoles[i] << "R-" << cBLUE << blueHoles[i] <<"B" << cRESET << "] ";
     }
     ss << endl << endl;;
     for (int i= 15; i>7; i--){
-        ss << "[" << redHoles[i] << "R-" << blueHoles[i] <<"B] ";
+        ss << "[" << cRED << redHoles[i] << "R-" << cBLUE << blueHoles[i] <<"B" << cRESET << "] ";
     }
     ss << endl;
-    for (int i = 16; i >= 9; i--) { ss << "  " << i << "    "; }
+    for (int i = 16; i >= 9; i--) { 
+        ss << "  ";
+        if (i%2 == 0) ss << cYELLOW << i << "    " << cRESET;
+        else ss << cGREEN << i << "    " << cRESET;
+    }
     ss << endl;
-    ss << "J1 Attic: " << playersAttic[1] << endl;
-    ss << "J2 Attic: " << playersAttic[0] << endl;
+    ss << cGREEN << "J1" << " Attic: " << playersAttic[1] << cRESET << endl;
+    ss << cYELLOW << "J2" << " Attic: " << playersAttic[0] << cRESET << endl;
 
     cout << ss.str() << endl;
 }
@@ -119,6 +135,20 @@ bool* Board::getPossibleMove(int player) {
     return possibleMoves;
 }
 
+int Board::checkWin() {
+    for (int player = 0; player < 2; player++) {
+        if (checkFamine(Engine::getNextPlayer(player))) return player;
+        if (checkHasMoreThanHalfSeeds(player)) return player;
+    }
+
+    if (checkLessHeightSeed()) {
+        if (playersAttic[0] == playersAttic[1]) return 3;
+        else return playersAttic[0] > playersAttic[1] ? 0 : 1;
+    }
+
+    return -1;
+}
+
 // Regarde si un joueur est en famine
 bool Board::checkFamine(int player) {
     for (int i=player; i<16; i+=2){
@@ -126,17 +156,14 @@ bool Board::checkFamine(int player) {
             return false;
         }
     }
+
+    void giveAllSeedsToPlayer(int player);
     return true;
 }
 
 // Regarde si un joueur a plus de la moitié des graines
 bool Board::checkHasMoreThanHalfSeeds(int player) {
-    if (playersAttic[player] >= 33){
-        return true;
-    }
-    else{
-        return false;
-    }
+    return playersAttic[player] >= 33;
 }
 
 // Regarde si le jeu contient 8 ou moins graines
@@ -152,6 +179,23 @@ bool Board::checkLessHeightSeed(){
         return false;
     }
 }
+
+void Board::giveAllSeedsToPlayer(int player) {
+    for (int i = 0; i < 16; i++) {
+        if (redHoles[i] > 0) {
+            playersAttic[player] += redHoles[i];
+            redHoles[i] = 0;
+        }
+        if (blueHoles[i] > 0) {
+            playersAttic[player] += blueHoles[i];
+            blueHoles[i] = 0;
+        }
+    }
+}
+
+
+
+
 
 bool Board::isLoosing(int player) {
     if (checkFamine(player)                     // Famine du joueur

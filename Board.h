@@ -23,10 +23,11 @@ public:
     //
     bool* getPossibleMove(int player);
 
-    bool checkWin();
+    int checkWin();
     bool checkFamine(int player);
     bool checkHasMoreThanHalfSeeds(int player);
     bool checkLessHeightSeed();
+    void giveAllSeedsToPlayer(int player);
 
     bool isWinning(int player);
     bool isLoosing(int player);

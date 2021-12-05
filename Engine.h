@@ -14,12 +14,13 @@ public:
 	Engine();
 	
 	void run();
+	int getNextPlayer();
+	static int getNextPlayer(int previousPlayer);
 private:
 	Board gameBoard;
 	int actualPlayer;
 
 	struct Choice askChoice(int player);
 	void updateActualPlayer();
-	int getNextPlayer();
-	int getNextPlayer(int previousPlayer);
+	void displayWinner(int winner);
 };
