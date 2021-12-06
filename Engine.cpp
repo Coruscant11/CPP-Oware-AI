@@ -22,9 +22,12 @@ void Engine::run() {
 
 		gameBoard.printBoard();
 
-		struct Choice choice = askChoice(actualPlayer);
-		int lastHole;
+        struct Choice choice{};
+        do {
+            choice = askChoice(actualPlayer);
+        } while (gameBoard.isPossibleMove(actualPlayer, choice.hole, choice.color));
 
+		int lastHole = -1;
 		if (choice.color == 'B') {
 			lastHole = gameBoard.distributeBlueSeed(choice.hole);
 		}
@@ -46,7 +49,7 @@ void Engine::run() {
 
 struct Choice Engine::askChoice(int player) {
 	if (player == 0) { cout << cGREEN << "Choose an odd hole and a color (ex: 13 B) : " << cRESET << endl; }
-	else if (player == 1) { cout << cYELLOW << "Chose an even hole and a color (ex: 12 R) : " << cRESET << endl; }
+	else if (player == 1) { cout << cYELLOW << "Choose an even hole and a color (ex: 12 R) : " << cRESET << endl; }
 
 	struct Choice choice;
 	choice.hole = -1;
@@ -63,6 +66,19 @@ struct Choice Engine::askChoice(int player) {
 	
 	choice.hole--;
 	return choice;
+}
+
+struct Choice Engine::decisionMinMaxToChoice(int decision) {
+    Choice choice;
+    if (decision < 16){
+        choice.color = 'B';
+        choice.hole = decision;
+    }
+    else{
+        choice.color = 'R';
+        choice.hole = decision % 16;
+    }
+    return choice;
 }
 
 void Engine::updateActualPlayer() {
@@ -86,3 +102,4 @@ void Engine::displayWinner(int winner) {
 		cout << "Player " << winner << " won the game !" << endl;
 	}
 }
+

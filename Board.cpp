@@ -42,8 +42,11 @@ Board::Board(const Board &b) {
 
 Board::~Board() {}
 
+int Board::getAtticPlayer(int player) {
+    return playersAttic[(player % 2)];
+}
+
 void Board::printBoard() {
-    //TODO
     // Trou 1 en haut a gauche jusqu'au 8
     // Trou 9 en bas a droite (en dessous de 8)
     // puis vers la gauche jusqu'a 16 (en desous du 1)
@@ -128,26 +131,22 @@ int Board::pickSeed(int lastHole, int chosenHole) {
     return nbTotalSeed;
 }
 
-bool* Board::getPossibleMove(int player) {
-    bool* possibleMoves = (bool *) malloc(16 * sizeof(bool));
-    for (int i=0; i<16; i++){
-        if ((i + 1) % 2 == player){
-            if (blueHoles[i]+redHoles[i] == 0){
-                possibleMoves[i] = false;
-            }
-            else{
-                possibleMoves[i] = true;
-            }
-        }
-        else{
-            possibleMoves[i] = false;
-        }
+Board Board::playMove(Board board, int player, int hole, char color) {
+    Board nextBoard = board;
+    int lastHole;
+    if (color == 'B'){
+        lastHole = nextBoard.distributeBlueSeed(hole);
     }
-    return possibleMoves;
+    else if (color == 'R'){
+        lastHole  = nextBoard.distributeRedSeed(hole);
+    }
+    nextBoard.pickSeed(lastHole,hole);
+    return nextBoard;
 }
 
+
 bool* Board::getPossibleRedMove(int player) {
-    bool possibleRedMoves[16];
+    bool* possibleRedMoves = (bool *) malloc(16 * sizeof (bool));
     for (int i=0; i<16; i++){
         if ((i + 1) % 2 == player){
             if (redHoles[i] == 0){
@@ -162,7 +161,7 @@ bool* Board::getPossibleRedMove(int player) {
 }
 
 bool* Board::getPossibleBlueMove(int player) {
-    bool possibleBlueMoves[16];
+    bool* possibleBlueMoves = (bool *) malloc(16 * sizeof (bool));
     for (int i=0; i<16; i++){
         if ((i + 1) % 2 == player){
             if (blueHoles[i] == 0){

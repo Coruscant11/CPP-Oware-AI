@@ -8,4 +8,6 @@ add_executable(AwaleCustom
         Board.cpp
         Board.h
         AI.cpp
-        AI.h)
+        AI.h
+        Engine.cpp
+        Engine.h)

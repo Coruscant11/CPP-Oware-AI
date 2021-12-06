@@ -21,6 +21,7 @@ private:
 	int actualPlayer;
 
 	struct Choice askChoice(int player);
+    struct Choice decisionMinMaxToChoice(int decision);
 	void updateActualPlayer();
 	void displayWinner(int winner);
 };
