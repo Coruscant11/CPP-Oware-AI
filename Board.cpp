@@ -146,7 +146,7 @@ Board Board::playMove(Board board, int player, int hole, char color) {
 
 
 bool* Board::getPossibleRedMove(int player) {
-    bool* possibleRedMoves = (bool *) malloc(16 * sizeof (bool));
+    bool possibleRedMoves[16] ={false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
     for (int i=0; i<16; i++){
         if ((i + 1) % 2 == player){
             if (redHoles[i] == 0){
@@ -157,11 +157,12 @@ bool* Board::getPossibleRedMove(int player) {
             }
         }
     }
+    cout << possibleRedMoves <<endl;
     return possibleRedMoves;
 }
 
 bool* Board::getPossibleBlueMove(int player) {
-    bool* possibleBlueMoves = (bool *) malloc(16 * sizeof (bool));
+    bool possibleBlueMoves[16] ={false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
     for (int i=0; i<16; i++){
         if ((i + 1) % 2 == player){
             if (blueHoles[i] == 0){
@@ -172,6 +173,7 @@ bool* Board::getPossibleBlueMove(int player) {
             }
         }
     }
+    cout << possibleBlueMoves <<endl;
     return possibleBlueMoves;
 }
 
@@ -180,7 +182,7 @@ bool Board::isPossibleMove(int player, int move, char color){
     if (move >= 16){
         return false;
     }
-    if ((move + 1) % 2 == player) {
+    if (move % 2 == player) {
         if (color == 'B') {
             if (blueHoles[move] != 0) {
                 return true;

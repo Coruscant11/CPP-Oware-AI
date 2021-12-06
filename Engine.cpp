@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include <iostream>
+#include "AI.h"
 
 #define cRESET   "\033[0m"
 #define cRED     "\033[31m"      
@@ -9,12 +10,14 @@
 
 Engine::Engine() {
 	actualPlayer = 0;
+    aiPlayer = 1;
 }
 
 void Engine::run() {
 	bool isFinished = false;
 
 	while (!isFinished) {
+
 		if (actualPlayer == 0)
 			cout << cGREEN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
 		else
@@ -23,19 +26,28 @@ void Engine::run() {
 		gameBoard.printBoard();
 
         struct Choice choice{};
-        do {
-            choice = askChoice(actualPlayer);
-        } while (gameBoard.isPossibleMove(actualPlayer, choice.hole, choice.color));
 
-		int lastHole = -1;
-		if (choice.color == 'B') {
-			lastHole = gameBoard.distributeBlueSeed(choice.hole);
-		}
-		else if (choice.color == 'R') {
-			lastHole = gameBoard.distributeRedSeed(choice.hole);
-		}
-	
+        if (actualPlayer == aiPlayer){
+            int decision = AI::decisionMinMax(actualPlayer, gameBoard, 2);
+            choice = decisionMinMaxToChoice(decision);
+            cout << choice.hole << endl;
+            cout << choice.color << endl;
+        }
+        else{
+            choice = askChoice(actualPlayer);
+        }
+
+
+        int lastHole = -1;
+        if (choice.color == 'B') {
+            lastHole = gameBoard.distributeBlueSeed(choice.hole);
+        }
+        else if (choice.color == 'R') {
+            lastHole = gameBoard.distributeRedSeed(choice.hole);
+        }
+
 		gameBoard.pickSeed(lastHole, choice.hole);
+
 		int winner = gameBoard.checkWin();
 		if (winner >= 0) {
 			isFinished = true;

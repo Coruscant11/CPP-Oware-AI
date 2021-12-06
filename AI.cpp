@@ -1,6 +1,5 @@
 #include "AI.h"
-
-#define DEPTH_MAX 5
+#include "iostream"
 
 AI::AI() {
 
@@ -11,15 +10,18 @@ AI::~AI() {
 }
 
 int AI::decisionMinMax(int player, Board board, int maxDepth) {
-    bool* possibleBlueMove = board.getPossibleBlueMove(player);
-    bool* possibleRedMove = board.getPossibleRedMove(player);
+    bool* possibleBlueMove;
+    possibleBlueMove = board.getPossibleBlueMove(player);
+    bool* possibleRedMove;
+    possibleRedMove = board.getPossibleRedMove(player);
+
     int values[32];
     // 0->15 : Blue
     // 16-> 31 : Red
     for (int move=0; move<32; move++){
         if (move < 16){
             if (possibleRedMove[move]){
-                values[move] = valueMinMax(board, player, false, 0,DEPTH_MAX);
+                values[move] = valueMinMax(board, player, false, 0,maxDepth);
             }
             else{
                 values[move] = -100;
@@ -27,7 +29,7 @@ int AI::decisionMinMax(int player, Board board, int maxDepth) {
         }
         else{
             if (possibleBlueMove[move]){
-                values[move] = valueMinMax(board, player, false, 0, DEPTH_MAX);
+                values[move] = valueMinMax(board, player, false, 0, maxDepth);
             }
             else{
                 values[move] = -100;

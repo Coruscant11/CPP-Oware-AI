@@ -19,6 +19,7 @@ public:
 private:
 	Board gameBoard;
 	int actualPlayer;
+    int aiPlayer;
 
 	struct Choice askChoice(int player);
     struct Choice decisionMinMaxToChoice(int decision);
