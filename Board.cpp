@@ -131,17 +131,15 @@ int Board::pickSeed(int lastHole, int chosenHole) {
     return nbTotalSeed;
 }
 
-Board Board::playMove(Board board, int player, int hole, char color) {
-    Board nextBoard = board;
+void Board::playMove(Board board, int player, int hole, char color) {
     int lastHole;
     if (color == 'B'){
-        lastHole = nextBoard.distributeBlueSeed(hole);
+        lastHole = board.distributeBlueSeed(hole);
     }
     else if (color == 'R'){
-        lastHole  = nextBoard.distributeRedSeed(hole);
+        lastHole  = board.distributeRedSeed(hole);
     }
-    nextBoard.pickSeed(lastHole,hole);
-    return nextBoard;
+    board.pickSeed(lastHole,hole);
 }
 
 

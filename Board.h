@@ -23,7 +23,7 @@ public:
     int distributeBlueSeed(int chosenHole);
     int distributeRedSeed(int chosenHole);
     int pickSeed(int lastHole, int chosenHole);
-    static Board playMove(Board board, int player, int hole, char color);
+    static void playMove(Board board, int player, int hole, char color);
 
     // Possible Move
     bool* getPossibleBlueMove(int player);

@@ -22,7 +22,7 @@ private:
     int aiPlayer;
 
 	struct Choice askChoice(int player);
-    struct Choice decisionMinMaxToChoice(int decision);
+    struct Choice decisionMinMaxToChoice(struct Array2DIndex decision);
 	void updateActualPlayer();
 	void displayWinner(int winner);
 };
