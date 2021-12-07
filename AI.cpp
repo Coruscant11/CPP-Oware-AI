@@ -11,13 +11,13 @@ AI::~AI() {
 }
 
 struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
+    int cpt = 0;
     int values[2][16]; // 0 -> Bleu; 1 -> Rouge
 
     for (int color = 0; color < 2; color++) {
         for (int move=0; move<16; move++) {
-
             if (board.isPossibleMove(player, move, color == 0 ? 'B' : 'R')) {
-                values[color][move] = valueMinMax(board, player, false, 0, maxDepth);
+                values[color][move] = valueMinMax(board, player, 0, maxDepth, cpt);
             }
             else {
                 values[color][move] = -10000;
@@ -25,51 +25,75 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
         }
     }
 
+    std::cout << cpt << " appels de valueMinMax" << std::endl;
     return indexMaxValueArray(values);
 }
 
-int AI::valueMinMax(Board board, int player, bool aiPlay, int depth, int depthMax) {
+int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) {
+    cpt+=1;
     int tab_values[2][16];
+    for (int x = 0; x < 2; x++) {
+        for (int y = 0; y < 16; y++) {
+            tab_values[x][y] = 0;
+        }
+    }
     Board nextBoard = board;
 
     // Positions finales
-    if (board.isWinning(player))
+    if (nextBoard.isWinning(player))
         return 10000;
-    if (board.isLoosing(player))
+    if (nextBoard.isLoosing(player))
         return -10000;
-    if (board.draw())
+    if (nextBoard.draw())
         return 0;
 
     // Profondeur maximale
     if (depth == depthMax){
-        return evaluation(board, player,aiPlay, depth);
+        return evaluation(nextBoard, player, depth);
     }
 
     for (int color = 0; color < 2; color++) {
         for (int hole = 0; hole < 16; hole++) {
             char colorC = color == 0 ? 'B' : 'R';
 
-            if (board.isPossibleMove(player, hole, colorC)) {
-                Board::playMove(nextBoard, player, hole, colorC);
-                tab_values[color][hole] = valueMinMax(nextBoard, Engine::getNextPlayer(player), !aiPlay, depth+1, depthMax);
+            if (nextBoard.isPossibleMove(player, hole, colorC)) {
+                nextBoard.playMove(player, hole, colorC);
+                tab_values[color][hole] = valueMinMax(nextBoard, Engine::getNextPlayer(player), depth+1, depthMax, cpt);
             }
 
             else {
-                if (aiPlay)
+                if (player == 1)
                     tab_values[color][hole] = -10000;
                 else
                     tab_values[color][hole] = 10000;
             }
         }
     }
-    if (aiPlay)
+    if (player == 1)
         return maxValueArray(tab_values);
     else
         return minValueArray(tab_values);  
 }
 
-int AI::evaluation(Board board, int player, bool aiPlay, int depth) {
-    return board.getAtticPlayer(player) - board.getAtticPlayer((player + 1) % 2);
+int AI::evaluation(Board board, int player, int depth) {
+    int quality = 0;
+    quality += (board.getAtticPlayer(player) - board.getAtticPlayer((player + 1) % 2));
+
+    for (int i = 0; i < 8; i++) {
+        int idx = i * 2 + player;
+        if (board.blueHoles[idx] + board.redHoles[idx] == 2 && board.blueHoles[idx] + board.redHoles[idx] == 3) quality - 1;
+        if (board.blueHoles[idx] > 3) quality += 1;
+        if (board.redHoles[idx] > 3) quality += 1;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        int idx = i * 2 + Engine::getNextPlayer(player);
+        if (board.blueHoles[idx] + board.redHoles[idx] == 2 && board.blueHoles[idx] + board.redHoles[idx] == 3) quality += 1;
+        if (board.blueHoles[idx] > 3) quality -= 1;
+        if (board.redHoles[idx] > 3) quality -= 1;
+    }
+
+    return quality;
 }
 
 int AI::minValueArray(int values[][16]) {

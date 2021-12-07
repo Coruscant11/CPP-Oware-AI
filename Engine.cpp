@@ -26,20 +26,16 @@ void Engine::run() {
 		gameBoard.printBoard();
 
         struct Choice choice;
-
+		/*
         if (actualPlayer == aiPlayer){
-            struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 2);
+            struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 4);
             choice = decisionMinMaxToChoice(decision);
-            cout << choice.hole << endl;
-            cout << choice.color << endl;
-			cout << "confirmer : ";
-			char x;
-			cin >> x;
+            cout << cYELLOW << "L'IA a choisi de jouer " << choice.hole+1 << " " << choice.color << cRESET << endl;
         }
         else {
             choice = askChoice(actualPlayer);
-        }
-
+        }*/
+		choice = askChoice(actualPlayer);
 
         int lastHole = -1;
         if (choice.color == 'B') {

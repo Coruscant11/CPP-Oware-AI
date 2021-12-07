@@ -15,8 +15,8 @@ public:
     static struct Array2DIndex decisionMinMax(int player, Board board, int maxDepth);
 
 private:
-    static int valueMinMax(Board board, int player, bool aiPlay, int depth, int depthMax);
-    static int evaluation(Board board, int player, bool aiPlayer, int depth);
+    static int valueMinMax(Board board, int player, int depth, int depthMax, int &cpt);
+    static int evaluation(Board board, int player, int depth);
 
     static int minValueArray(int values[][16]);
     static int maxValueArray(int values[][16]);

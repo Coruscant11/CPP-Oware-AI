@@ -23,11 +23,9 @@ public:
     int distributeBlueSeed(int chosenHole);
     int distributeRedSeed(int chosenHole);
     int pickSeed(int lastHole, int chosenHole);
-    static void playMove(Board board, int player, int hole, char color);
+    void playMove(int player, int hole, char color);
 
     // Possible Move
-    bool* getPossibleBlueMove(int player);
-    bool* getPossibleRedMove(int player);
     bool isPossibleMove(int player, int move, char color);
 
     // Check the end of the game
@@ -41,7 +39,6 @@ public:
     bool isLoosing(int player);
     bool draw();
 
-private:
     int redHoles[16];
     int blueHoles[16];
 

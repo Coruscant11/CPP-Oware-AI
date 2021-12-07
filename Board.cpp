@@ -83,11 +83,15 @@ void Board::printBoard() {
 int Board::distributeBlueSeed(int chosenHole) {
     int nbSeed = blueHoles[chosenHole];
     blueHoles[chosenHole] = 0;
-    int currentHole = (chosenHole + 1) % 16; // Si le trou choisi est a moi le suivant et forcément celui de l'adversaire
-    while (nbSeed != 0){
+    int currentHole = (chosenHole+1)%16;
+    if (nbSeed > 0 ){
         blueHoles[currentHole] += 1;
         nbSeed --;
+    }
+    while (nbSeed != 0){
         currentHole = (currentHole + 2) % 16; // on a un trou sur deux donc on incrémente de 2 au lieu de 1
+        blueHoles[currentHole] += 1;
+        nbSeed --;
     }
     return currentHole;
 }
@@ -97,11 +101,15 @@ int Board::distributeRedSeed(int chosenHole) {
     int nbSeed = redHoles[chosenHole];
     redHoles[chosenHole] = 0;
     int currentHole = (chosenHole + 1) % 16;
+    if (nbSeed > 0){
+        redHoles[currentHole] += 1;
+        nbSeed --;
+    }
     while (nbSeed != 0){
         if (currentHole != chosenHole){
+            currentHole = (currentHole + 1) % 16;
             redHoles[currentHole] += 1;
             nbSeed --;
-            currentHole = (currentHole + 1) % 16;
         }
     }
     return currentHole;
@@ -112,6 +120,7 @@ int Board::pickSeed(int lastHole, int chosenHole) {
     int nbBlueSeed = blueHoles[currentHole];
     int nbRedSeed = redHoles[currentHole];
     int nbTotalSeed = 0;
+
     while ((nbRedSeed+ nbBlueSeed) == 2 || (nbRedSeed + nbBlueSeed) == 3){
 
         // Update board
@@ -127,54 +136,20 @@ int Board::pickSeed(int lastHole, int chosenHole) {
         nbRedSeed = redHoles[currentHole];
     }
     // Ajouter les seed dans le grenier
-    playersAttic[(chosenHole + 1)  % 2] = nbTotalSeed;
+    playersAttic[(chosenHole + 1)  % 2] += nbTotalSeed;
     return nbTotalSeed;
 }
 
-void Board::playMove(Board board, int player, int hole, char color) {
+void Board::playMove(int player, int hole, char color) {
     int lastHole;
     if (color == 'B'){
-        lastHole = board.distributeBlueSeed(hole);
+        lastHole = distributeBlueSeed(hole);
     }
     else if (color == 'R'){
-        lastHole  = board.distributeRedSeed(hole);
+        lastHole  = distributeRedSeed(hole);
     }
-    board.pickSeed(lastHole,hole);
+    pickSeed(lastHole,hole);
 }
-
-
-bool* Board::getPossibleRedMove(int player) {
-    bool possibleRedMoves[16] ={false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
-    for (int i=0; i<16; i++){
-        if ((i + 1) % 2 == player){
-            if (redHoles[i] == 0){
-                possibleRedMoves[i] = false;
-            }
-            else{
-                possibleRedMoves[i] = true;
-            }
-        }
-    }
-    cout << possibleRedMoves <<endl;
-    return possibleRedMoves;
-}
-
-bool* Board::getPossibleBlueMove(int player) {
-    bool possibleBlueMoves[16] ={false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
-    for (int i=0; i<16; i++){
-        if ((i + 1) % 2 == player){
-            if (blueHoles[i] == 0){
-                possibleBlueMoves[i] = false;
-            }
-            else{
-                possibleBlueMoves[i] = true;
-            }
-        }
-    }
-    cout << possibleBlueMoves <<endl;
-    return possibleBlueMoves;
-}
-
 
 bool Board::isPossibleMove(int player, int move, char color){
     if (move >= 16){
@@ -255,41 +230,16 @@ void Board::giveAllSeedsToPlayer(int player) {
     }
 }
 
-
-
-
-
 bool Board::isLoosing(int player) {
-    if (checkFamine(player)                     // Famine du joueur
-    || checkHasMoreThanHalfSeeds((player + 1) % 2)      // Joueur adverse a plus de 33 graines
-    || (checkLessHeightSeed() && playersAttic[player] < playersAttic[(player + 1) % 2]) // Moins de 8 graines dans le jeu et moins de graine que l'adversaire
-    ){
-        return true;
-    }
-    else{
-        return false;
-    }
+    return checkWin() == Engine::getNextPlayer(player);
 }
 
 bool Board::isWinning(int player) {
-    if (checkFamine((player + 1) %2)        // Joueur adverse en famine
-    || checkHasMoreThanHalfSeeds(player)    // joueur a plus de 33 graines
-    || (checkLessHeightSeed() && playersAttic[player] > playersAttic[(player + 1) % 2]) // Moins de 8 graines dans le jeu et plus de graines que l'adversaire
-    ){
-        return true;
-    }
-    else{
-        return false;
-    }
+    return checkWin() == player;
 }
 
 bool Board::draw() {
-    if (checkLessHeightSeed() && playersAttic[0] == 32 == playersAttic[1]){
-        return true;
-    }
-    else{
-        return false;
-    }
+    return checkWin() == 2;
 }
 
 
