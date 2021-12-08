@@ -26,7 +26,8 @@ void Engine::run() {
 		gameBoard.printBoard();
 
         struct Choice choice;
-
+        // 1 Human 1 IA
+        /*
         if (actualPlayer == aiPlayer){
             time_t start = time(NULL);
             struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 4);
@@ -38,20 +39,23 @@ void Engine::run() {
         else {
             choice = askChoice(actualPlayer);
         }
+         */
         // 2 human
         /*
         choice = askChoice(actualPlayer);
          */
 
         // 2 AI
-        /*
+
         time_t start = time(NULL);
         struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 4);
         time_t end = time(NULL);
         choice = decisionMinMaxToChoice(decision);
         cout << "Decision pris en : " << end-start << " s " << endl;
         cout << cYELLOW << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
-        */
+
+
+
         int lastHole = -1;
         if (choice.color == 'B') {
             lastHole = gameBoard.distributeBlueSeed(choice.hole);
