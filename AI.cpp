@@ -21,8 +21,11 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
                accPossible+=1;
         }
     }
-    if (accPossible < 10000000) {
+    if (accPossible < 8) {
         maxDepth + 2;
+    }
+    else if (accPossible < 4){
+        maxDepth + 4;
     }
     for (int color = 0; color < 2; color++) {
         for (int move=0; move<16; move++) {
@@ -64,7 +67,12 @@ int AI::valueMinMax(Board board, int player, bool isAI, int depth, int depthMax,
 
     // Profondeur maximale
     if (depth == depthMax){
-        return evaluation(nextBoard, player, isAI, depth);
+        if (player == 1){
+            return evaluation1(nextBoard, player, isAI, depth);
+        }
+        if (player == 0){
+            return evaluation0(nextBoard, player, isAI, depth);
+        }
     }
 
     for (int color = 0; color < 2; color++) {
@@ -95,11 +103,11 @@ int AI::valueMinMax(Board board, int player, bool isAI, int depth, int depthMax,
     }
 }
 
-int AI::evaluation(Board board, int player, bool isAI, int depth) {
+int AI::evaluation0(Board board, int player, bool isAI, int depth) {
     int ai = isAI ? player : (player+1)%2;
     int quality = 0;
     quality += (board.getAtticPlayer(ai) - board.getAtticPlayer((ai+1)%2));
-/*
+
     for (int i = 0; i < 8; i++) {
         int idx = i * 2 + player;
         if (board.blueHoles[idx] + board.redHoles[idx] == 2 && board.blueHoles[idx] + board.redHoles[idx] == 3) quality - 1;
@@ -113,10 +121,18 @@ int AI::evaluation(Board board, int player, bool isAI, int depth) {
         if (board.blueHoles[idx] > 3) quality -= 1;
         if (board.redHoles[idx] > 3) quality -= 1;
     }
-*/
+
     return quality;
 }
 
+
+int AI::evaluation1(Board board, int player, bool isAI, int depth) {
+    int ai = isAI ? player : (player+1)%2;
+    int quality = 0;
+    quality += (board.getAtticPlayer(ai) - board.getAtticPlayer((ai+1)%2));
+
+    return quality;
+}
 int AI::minValueArray(int values[][16]) {
     struct Array2DIndex indexs;
     indexs.colorIndex = 0;

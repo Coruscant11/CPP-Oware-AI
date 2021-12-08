@@ -16,7 +16,8 @@ public:
 
 private:
     static int valueMinMax(Board board, int player, bool isAI, int depth, int depthMax, int &cpt);
-    static int evaluation(Board board, int player, bool isAI, int depth);
+    static int evaluation0(Board board, int player, bool isAI, int depth);
+    static int evaluation1(Board board, int player, bool isAI, int depth);
 
     static int minValueArray(int values[][16]);
     static int maxValueArray(int values[][16]);
