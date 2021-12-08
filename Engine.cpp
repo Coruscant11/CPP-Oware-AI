@@ -51,7 +51,13 @@ void Engine::run() {
         // 2 AI
 
         time_t start = time(NULL);
-        struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 4);
+        struct Array2DIndex decision;
+        if (actualPlayer == 0){
+            decision = AI::decisionMinMax(actualPlayer, gameBoard, 3);
+        }
+        else{
+            decision = AI::decisionAlphaBeta(actualPlayer, gameBoard, 3);
+        }
         time_t end = time(NULL);
         choice = decisionMinMaxToChoice(decision);
         cout << "Decision pris en : " << end-start << " s " << endl;
