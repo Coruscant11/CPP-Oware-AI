@@ -1,6 +1,7 @@
 #include "AI.h"
 #include "Engine.h"
 #include "iostream"
+#include <thread>
 
 AI::AI() {
 
@@ -11,14 +12,24 @@ AI::~AI() {
 }
 
 struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
-    int cpt = 0;
+    int cpt[2][16];
     int values[2][16]; // 0 -> Bleu; 1 -> Rouge
 
+    int accPossible = 0;
+    for (int color = 0; color < 2; color++) {
+        for (int move=0; move<16; move++) {
+               accPossible+=1;
+        }
+    }
+    if (accPossible < 10000000) {
+        maxDepth + 2;
+    }
     for (int color = 0; color < 2; color++) {
         for (int move=0; move<16; move++) {
             if (board.isPossibleMove(player, move, color == 0 ? 'R' : 'B')) {
                 Board nextBoard = board;
                 nextBoard.playMove(player, move, color == 0 ? 'R' : 'B');
+                //std::thread t(valueMinMax, nextBoard, player, 0, maxDepth, cpt[color][move])
                 values[color][move] = valueMinMax(nextBoard, player, 0, maxDepth, cpt);
             }
             else {
@@ -33,8 +44,8 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
     return indexMaxValueArray(values);
 }
 
-int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) {
-    cpt+=1;
+int AI::valueMinMax(Board board, int player, int depth, int depthMax, int *cpt) {
+    *cpt+=1;
     int tab_values[2][16];
     for (int x = 0; x < 2; x++) {
         for (int y = 0; y < 16; y++) {
@@ -83,6 +94,7 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) 
 int AI::evaluation(Board board, int player, int depth) {
     int quality = 0;
     quality += (board.getAtticPlayer(1) - board.getAtticPlayer(0));
+
     /*
     for (int i = 0; i < 8; i++) {
         int idx = i * 2 + player;

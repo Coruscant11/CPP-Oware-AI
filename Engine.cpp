@@ -26,7 +26,7 @@ void Engine::run() {
 		gameBoard.printBoard();
 
         struct Choice choice;
-		
+
         if (actualPlayer == aiPlayer){
             struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 5);
             choice = decisionMinMaxToChoice(decision);

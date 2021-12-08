@@ -132,6 +132,8 @@ int Board::pickSeed(int lastHole, int chosenHole) {
 
         // Update the hole
         currentHole = (currentHole - 1) % 16;
+        if (currentHole < 0)
+            currentHole = 16 + currentHole;
         nbBlueSeed = blueHoles[currentHole];
         nbRedSeed = redHoles[currentHole];
     }
