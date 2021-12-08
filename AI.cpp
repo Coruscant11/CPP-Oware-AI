@@ -16,8 +16,10 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
 
     for (int color = 0; color < 2; color++) {
         for (int move=0; move<16; move++) {
-            if (board.isPossibleMove(player, move, color == 0 ? 'B' : 'R')) {
-                values[color][move] = valueMinMax(board, player, 0, maxDepth, cpt);
+            if (board.isPossibleMove(player, move, color == 0 ? 'R' : 'B')) {
+                Board nextBoard = board;
+                nextBoard.playMove(player, move, color == 0 ? 'R' : 'B');
+                values[color][move] = valueMinMax(nextBoard, player, 0, maxDepth, cpt);
             }
             else {
                 values[color][move] = -10000;
@@ -25,7 +27,9 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
         }
     }
 
-    std::cout << cpt << " appels de valueMinMax" << std::endl;
+    std::cout << cpt << " appels de minmax" << std::endl;
+    for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { std::cout << values[x][y] << " "; } std::cout << endl;}
+    std::cout << std::endl;
     return indexMaxValueArray(values);
 }
 
@@ -39,11 +43,11 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) 
     }
     Board nextBoard = board;
 
-    // Positions finales
+    //Positions finales
     if (nextBoard.isWinning(player))
-        return 10000;
+        return 64;
     if (nextBoard.isLoosing(player))
-        return -10000;
+        return -64;
     if (nextBoard.draw())
         return 0;
 
@@ -54,7 +58,7 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) 
 
     for (int color = 0; color < 2; color++) {
         for (int hole = 0; hole < 16; hole++) {
-            char colorC = color == 0 ? 'B' : 'R';
+            char colorC = color == 0 ? 'R' : 'B';
 
             if (nextBoard.isPossibleMove(player, hole, colorC)) {
                 nextBoard.playMove(player, hole, colorC);
@@ -63,9 +67,9 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) 
 
             else {
                 if (player == 1)
-                    tab_values[color][hole] = -10000;
+                    tab_values[color][hole] = -1000;
                 else
-                    tab_values[color][hole] = 10000;
+                    tab_values[color][hole] = 1000;
             }
         }
     }

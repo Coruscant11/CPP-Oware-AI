@@ -29,6 +29,7 @@ public:
     bool isPossibleMove(int player, int move, char color);
 
     // Check the end of the game
+    bool positionFinale();
     int checkWin();
     bool checkFamine(int player);
     bool checkHasMoreThanHalfSeeds(int player);

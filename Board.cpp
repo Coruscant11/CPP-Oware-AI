@@ -172,6 +172,16 @@ bool Board::isPossibleMove(int player, int move, char color){
     }
 }
 
+bool Board::positionFinale() {
+    if (checkLessHeightSeed()) {
+        return true;
+    }
+    if (checkHasMoreThanHalfSeeds(0) ||checkHasMoreThanHalfSeeds(1)) {
+        return true;
+    }
+
+}
+
 int Board::checkWin() {
     for (int player = 0; player < 2; player++) {
         if (checkFamine(Engine::getNextPlayer(player))) return player;
@@ -194,7 +204,7 @@ bool Board::checkFamine(int player) {
         }
     }
 
-    void giveAllSeedsToPlayer(int player);
+    //void giveAllSeedsToPlayer(int player);
     return true;
 }
 

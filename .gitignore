@@ -4,3 +4,6 @@ main.exe
 CMakeLists.txt
 .vscode/settings.json
 .vscode/tasks.json
+*.exe
+*.json
+AI.exe
