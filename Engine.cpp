@@ -28,7 +28,7 @@ void Engine::run() {
         struct Choice choice;
 		
         if (actualPlayer == aiPlayer){
-            struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 4);
+            struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard, 5);
             choice = decisionMinMaxToChoice(decision);
             cout << cYELLOW << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
         }

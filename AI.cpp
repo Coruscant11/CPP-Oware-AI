@@ -61,8 +61,9 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) 
             char colorC = color == 0 ? 'R' : 'B';
 
             if (nextBoard.isPossibleMove(player, hole, colorC)) {
-                nextBoard.playMove(player, hole, colorC);
-                tab_values[color][hole] = valueMinMax(nextBoard, Engine::getNextPlayer(player), depth+1, depthMax, cpt);
+                Board pos_next = nextBoard;
+                pos_next.playMove(player, hole, colorC);
+                tab_values[color][hole] = valueMinMax(pos_next, Engine::getNextPlayer(player), depth+1, depthMax, cpt);
             }
 
             else {
@@ -81,21 +82,21 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int &cpt) 
 
 int AI::evaluation(Board board, int player, int depth) {
     int quality = 0;
-    quality += (board.getAtticPlayer(player) - board.getAtticPlayer((player + 1) % 2));
-
+    quality += (board.getAtticPlayer(1) - board.getAtticPlayer(0));
+    /*
     for (int i = 0; i < 8; i++) {
         int idx = i * 2 + player;
         if (board.blueHoles[idx] + board.redHoles[idx] == 2 && board.blueHoles[idx] + board.redHoles[idx] == 3) quality - 1;
-        if (board.blueHoles[idx] > 3) quality += 1;
-        if (board.redHoles[idx] > 3) quality += 1;
+        if (board.blueHoles[idx] > 3) quality += 2;
+        if (board.redHoles[idx] > 3) quality += 2;
     }
 
     for (int i = 0; i < 8; i++) {
         int idx = i * 2 + Engine::getNextPlayer(player);
-        if (board.blueHoles[idx] + board.redHoles[idx] == 2 && board.blueHoles[idx] + board.redHoles[idx] == 3) quality += 1;
+        if (board.blueHoles[idx] + board.redHoles[idx] == 2 && board.blueHoles[idx] + board.redHoles[idx] == 3) quality += 2;
         if (board.blueHoles[idx] > 3) quality -= 1;
         if (board.redHoles[idx] > 3) quality -= 1;
-    }
+    }*/
 
     return quality;
 }
