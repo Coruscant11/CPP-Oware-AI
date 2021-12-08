@@ -1,6 +1,7 @@
 #include "AI.h"
 #include "Engine.h"
 #include "iostream"
+#include <thread>
 
 AI::AI() {
 
@@ -14,11 +15,21 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
     int cpt = 0;
     int values[2][16]; // 0 -> Bleu; 1 -> Rouge
 
+    int accPossible = 0;
+    for (int color = 0; color < 2; color++) {
+        for (int move=0; move<16; move++) {
+               accPossible+=1;
+        }
+    }
+    if (accPossible < 10000000) {
+        maxDepth + 2;
+    }
     for (int color = 0; color < 2; color++) {
         for (int move=0; move<16; move++) {
             if (board.isPossibleMove(player, move, color == 0 ? 'R' : 'B')) {
                 Board nextBoard = board;
                 nextBoard.playMove(player, move, color == 0 ? 'R' : 'B');
+                //std::thread t(valueMinMax, nextBoard, player, 0, maxDepth, cpt[color][move])
                 values[color][move] = valueMinMax(nextBoard, (player+1)%2, false, 0, maxDepth, cpt);
             }
             else {
