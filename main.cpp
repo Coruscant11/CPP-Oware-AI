@@ -3,6 +3,6 @@
 #include "Board.h"
 
 int main() {
-    Engine e;
+    Engine e = Engine(0);
     e.run();
 }

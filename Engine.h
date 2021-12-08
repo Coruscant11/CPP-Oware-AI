@@ -11,7 +11,7 @@ struct Choice {
 
 class Engine {
 public:
-	Engine();
+	Engine(int aiPlayer);
 	
 	void run();
 	int getNextPlayer();

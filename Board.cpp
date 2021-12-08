@@ -132,6 +132,9 @@ int Board::pickSeed(int lastHole, int chosenHole) {
 
         // Update the hole
         currentHole = (currentHole - 1) % 16;
+        if (currentHole < 0){
+            currentHole = 15;
+        }
         nbBlueSeed = blueHoles[currentHole];
         nbRedSeed = redHoles[currentHole];
     }
@@ -169,6 +172,9 @@ bool Board::isPossibleMove(int player, int move, char color){
                 return false;
             }
         }
+    }
+    else {
+        return false;
     }
 }
 
