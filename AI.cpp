@@ -1,7 +1,11 @@
 #include "AI.h"
 #include "Engine.h"
-#include "iostream"
+#include <iostream>
 #include <thread>
+#include <future>
+#include <vector>
+#include <chrono>
+#include <ctime>
 
 AI::AI() {
 
@@ -12,53 +16,157 @@ AI::~AI() {
 }
 
 struct Array2DIndex AI::decisionMinMax(int player, Board board, int maxDepth) {
-    int cpt[2][16];
-    int values[2][16]; // 0 -> Bleu; 1 -> Rouge
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
 
-    int accPossible = 0;
+    std::atomic<int> *cpt = new std::atomic<int>(0);
+
+    int values[2][16]; // 0 -> Bleu; 1 -> Rouge
+    std::thread threads[4];
+    int threadIndex = 0;
+
+    int totalCoupPossible = 0;
+    std::vector<struct Array2DIndex> indexsPerThreads[4];
+
+    int tIndex = 0;
     for (int color = 0; color < 2; color++) {
-        for (int move=0; move<16; move++) {
-               accPossible+=1;
-        }
-    }
-    if (accPossible < 10000000) {
-        maxDepth + 2;
-    }
-    for (int color = 0; color < 2; color++) {
-        for (int move=0; move<16; move++) {
-            if (board.isPossibleMove(player, move, color == 0 ? 'R' : 'B')) {
-                Board nextBoard = board;
-                nextBoard.playMove(player, move, color == 0 ? 'R' : 'B');
-                //std::thread t(valueMinMax, nextBoard, player, 0, maxDepth, cpt[color][move])
-                values[color][move] = valueMinMax(nextBoard, player, 0, maxDepth, cpt);
+        for (int hole = 0; hole < 16; hole++) {
+            if (board.isPossibleMove(player, hole, color == 0 ? 'R' : 'B')) {
+                struct Array2DIndex indexs;
+                indexs.colorIndex = color;
+                indexs.holeIndex = hole;
+                indexsPerThreads[tIndex].push_back(indexs);
+                tIndex = (tIndex + 1) % 4;
+                totalCoupPossible++;
             }
             else {
-                values[color][move] = -10000;
+                values[color][hole] = -10000;
             }
         }
     }
 
-    std::cout << cpt << " appels de minmax" << std::endl;
+    switch(totalCoupPossible) {
+        case 16:
+        case 15:
+        case 14:
+        case 13:
+        case 12:
+        case 11:
+        case 10:
+            maxDepth = 5;
+            break;
+        case 9:
+        case 8:
+        case 7:
+            maxDepth = 6;
+            break;
+        case 6:
+        case 5:
+        case 4:
+            maxDepth = 7;
+            break;
+        case 3:
+        case 2:
+            maxDepth = 8;
+            break;
+        case 1:
+            maxDepth = 1;
+            break;
+    }
+
+    std::cout << "Profondeur max : " << maxDepth << " pour " << totalCoupPossible << "coups" << std::endl;
+
+    for (threadIndex = 0; threadIndex < indexsPerThreads->size(); threadIndex++) {
+        threads[threadIndex] = std::thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &values, &maxDepth] (int t) {
+            for (int i = 0; i < indexsPerThreads[t].size(); i++) {
+                struct Array2DIndex indexs = indexsPerThreads[t][i];
+                Board nextBoard = board;
+                nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
+                values[indexs.colorIndex][indexs.holeIndex] = valueMinMax(nextBoard, Engine::getNextPlayer(player), 0, maxDepth, cpt);
+            }
+        }, threadIndex);
+    }
+
+    /*
+    for (int color = 0; color < 2; color++) {
+        for(int hole = 0; hole < 16; hole++) {
+            if (board.isPossibleMove(player, hole, color == 0 ? 'R' : 'B')) {
+                Board nextBoard = board;
+                nextBoard.playMove(player, hole, color == 0 ? 'R' : 'B');
+                futures[color][hole] = std::async(std::launch::async, valueMinMax, nextBoard, player, 0, 6, cpt);
+            }
+            else {
+                futures[color][hole] = std::async(std::launch::async, []{ return -10000; });
+            }
+        }
+    }*/
+
+    /*
+    for (int color = 0; color < 2; color++) {
+        for (int move=0; move<16; move++) {
+            threads[color][move] = std::thread([&board, &player, &move, &color, &cpt, &values] () {
+                if (board.isPossibleMove(player, move, color == 0 ? 'R' : 'B')) {
+                    Board nextBoard = board;
+                    nextBoard.playMove(player, move, color == 0 ? 'R' : 'B');
+                    values[color][move] = valueMinMax(nextBoard, player, 0, , cpt);
+                }
+                else {
+                    values[color][move] = -10000;
+                }
+            });*/
+/*
+    for (int color = 0; color < 2; color++) {
+        for(int hole = 0; hole < 16; hole++) {
+            if (board.isPossibleMove(player, hole, color == 0 ? 'R' : 'B')) {
+                Board nextBoard = board;
+                nextBoard.playMove(player, hole, color == 0 ? 'R' : 'B');
+                //threads[color][move] = std::thread(valueMinMax, nextBoard, player, 0, 10, cpt);
+                //std::thread t(valueMinMax, nextBoard, player, 0, maxDepth, cpt[color][move])
+                values[color][hole] = valueMinMax(nextBoard, player, 0, maxDepth, cpt);
+            }
+            else {
+                values[color][hole] = -10000;
+            }
+        }
+    }*/
+
+    /*int acc = 0;
+    for (int color = 0; color < 2; color++) {
+        for (int hole = 0; hole < 16; hole++) {
+            futures[color][hole].wait();
+            values[color][hole] = futures[color][hole].get();
+        }
+    }*/
+
+    for (int i = 0; i < 4; i++) {
+        if (threads[i].joinable()) {
+            threads[i].join();
+        }
+    }
+
+    std::cout << cpt->load() << " appels de minmax" << std::endl;
     for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { std::cout << values[x][y] << " "; } std::cout << endl;}
     std::cout << std::endl;
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+    delete cpt;
+
     return indexMaxValueArray(values);
 }
 
-int AI::valueMinMax(Board board, int player, int depth, int depthMax, int *cpt) {
-    *cpt+=1;
+int AI::valueMinMax(Board board, int player, int depth, int depthMax, std::atomic<int> *cpt) {
+    cpt->fetch_add(1);
     int tab_values[2][16];
-    for (int x = 0; x < 2; x++) {
-        for (int y = 0; y < 16; y++) {
-            tab_values[x][y] = 0;
-        }
-    }
     Board nextBoard = board;
 
     //Positions finales
-    if (nextBoard.isWinning(player))
-        return 64;
+    if (nextBoard.isWinning(player)) {
+        return player == 1 ? 64 - depth : -64 + depth;
+    }
     if (nextBoard.isLoosing(player))
-        return -64;
+        return player == 1 ? -64 - depth : 64 - depth;
     if (nextBoard.draw())
         return 0;
 
@@ -92,8 +200,7 @@ int AI::valueMinMax(Board board, int player, int depth, int depthMax, int *cpt) 
 }
 
 int AI::evaluation(Board board, int player, int depth) {
-    int quality = 0;
-    quality += (board.getAtticPlayer(1) - board.getAtticPlayer(0));
+    int quality = (board.getAtticPlayer(1) - board.getAtticPlayer(0));
 
     /*
     for (int i = 0; i < 8; i++) {

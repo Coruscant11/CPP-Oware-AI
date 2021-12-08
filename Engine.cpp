@@ -49,6 +49,7 @@ void Engine::run() {
 		int winner = gameBoard.checkWin();
 		if (winner >= 0) {
 			isFinished = true;
+            gameBoard.printBoard();
 			displayWinner(winner);
 		}
 
