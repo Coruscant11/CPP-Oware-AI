@@ -100,7 +100,7 @@ void Engine::displayWinner(int winner) {
 		cout << "It's a draw !" << endl;
 	}
 	else if (winner == 0 || winner == 1) {
-		cout << "Player " << winner << " won the game !" << endl;
+		cout << "Player " << winner + 1 << " won the game !" << endl;
 	}
 }
 
