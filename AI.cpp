@@ -48,9 +48,9 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     else if (totalCoupPossible >= 10)
         maxDepth = 10;
     else if (totalCoupPossible >= 6)
-        maxDepth = 14;
+        maxDepth = 12;
     else if (totalCoupPossible >= 2)
-        maxDepth = 15;
+        maxDepth = 13;
     else
         maxDepth = 0;
 
