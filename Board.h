@@ -22,7 +22,7 @@ public:
     // Distribute and steal seed
     int distributeBlueSeed(int chosenHole);
     int distributeRedSeed(int chosenHole);
-    int pickSeed(int lastHole, int chosenHole);
+    int pickSeed(int lastHole, int chosenHole, int player);
     void playMove(int player, int hole, char color);
 
     // Possible Move

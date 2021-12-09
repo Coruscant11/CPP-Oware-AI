@@ -9,8 +9,12 @@
 #define cGREEN   "\033[32m" 
 
 Engine::Engine() {
+	cout << "Does the player begin ? (y/n) : ";
+	char rep;
+	while (rep != 'y' && rep != 'n')
+		cin >> rep;
+	aiPlayer = rep == 'y' ? 1 : 0;
 	actualPlayer = 0;
-    aiPlayer = 1;
 }
 
 void Engine::run() {
@@ -28,7 +32,7 @@ void Engine::run() {
         struct Choice choice;
 
         if (actualPlayer == aiPlayer){
-            struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard);
+            struct Array2DIndex decision = AI::decisionMinMax(aiPlayer, gameBoard);
             choice = decisionMinMaxToChoice(decision);
             cout << cYELLOW << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
         }
@@ -36,15 +40,7 @@ void Engine::run() {
             choice = askChoice(actualPlayer);
         }
 
-        int lastHole = -1;
-        if (choice.color == 'B') {
-            lastHole = gameBoard.distributeBlueSeed(choice.hole);
-        }
-        else if (choice.color == 'R') {
-            lastHole = gameBoard.distributeRedSeed(choice.hole);
-        }
-
-		gameBoard.pickSeed(lastHole, choice.hole);
+        gameBoard.playMove(actualPlayer, choice.hole, choice.color);
 
 		int winner = gameBoard.checkWin();
 		if (winner >= 0) {

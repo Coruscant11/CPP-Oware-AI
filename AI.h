@@ -9,6 +9,7 @@
 #include <vector>
 #include <chrono>
 #include <ctime>
+#include <bits/stdc++.h>
 #include "Board.h"
 
 
@@ -25,7 +26,8 @@ public:
     ~AI();
     static struct Array2DIndex decisionMinMax(int player, Board board);
 private:
-    static int minimaxAlphaBeta(Board board, int player, bool isMax, int maxDepth, std::atomic<int> *cpt, int alpha, int beta); 
+    static int minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut); 
+    static int negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut);
     static int evaluation(Board board, int player, int depth);
     static struct Array2DIndex indexMaxValueArray(int values[][16]);
 };

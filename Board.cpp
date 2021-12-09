@@ -36,8 +36,8 @@ Board::Board(const Board &b) {
     }
 
     // Player attic
-    this->playersAttic[0] = b.blueHoles[0];
-    this->playersAttic[1] = b.redHoles[1];
+    this->playersAttic[0] = b.playersAttic[0];
+    this->playersAttic[1] = b.playersAttic[1];
 }
 
 Board::~Board() {}
@@ -73,8 +73,8 @@ void Board::printBoard() {
         else ss << cGREEN << i << "    " << cRESET;
     }
     ss << endl;
-    ss << cGREEN << "J1" << " Attic: " << playersAttic[1] << cRESET << endl;
-    ss << cYELLOW << "J2" << " Attic: " << playersAttic[0] << cRESET << endl;
+    ss << cGREEN << "J1" << " Attic: " << playersAttic[0] << cRESET << endl;
+    ss << cYELLOW << "J2" << " Attic: " << playersAttic[1] << cRESET << endl;
 
     cout << ss.str() << endl;
 }
@@ -115,7 +115,7 @@ int Board::distributeRedSeed(int chosenHole) {
     return currentHole;
 }
 
-int Board::pickSeed(int lastHole, int chosenHole) {
+int Board::pickSeed(int lastHole, int chosenHole, int player) {
     int currentHole = lastHole;
     int nbBlueSeed = blueHoles[currentHole];
     int nbRedSeed = redHoles[currentHole];
@@ -138,7 +138,7 @@ int Board::pickSeed(int lastHole, int chosenHole) {
         nbRedSeed = redHoles[currentHole];
     }
     // Ajouter les seed dans le grenier
-    playersAttic[(chosenHole + 1)  % 2] += nbTotalSeed;
+    playersAttic[player] += nbTotalSeed;
     return nbTotalSeed;
 }
 
@@ -150,7 +150,7 @@ void Board::playMove(int player, int hole, char color) {
     else if (color == 'R'){
         lastHole  = distributeRedSeed(hole);
     }
-    pickSeed(lastHole,hole);
+    pickSeed(lastHole, hole, player);
 }
 
 bool Board::isPossibleMove(int player, int move, char color){

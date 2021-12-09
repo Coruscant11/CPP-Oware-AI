@@ -15,6 +15,8 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     start = chrono::system_clock::now();
 
     atomic<int> *cpt = new atomic<int>(0);
+    atomic<int> *cptCut = new atomic<int>(0);
+
     int values[2][16]; // 0 -> Bleu; 1 -> Rouge
 
     thread threads[4];
@@ -39,30 +41,28 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         }
     }
 
-    if (totalCoupPossible >= 15) 
-        maxDepth = 7;
-    else if (totalCoupPossible >= 12)
+    if (totalCoupPossible >= 14) 
         maxDepth = 8;
+    else if (totalCoupPossible >= 12)
+        maxDepth = 9;
     else if (totalCoupPossible >= 10)
         maxDepth = 9;
     else if (totalCoupPossible >= 6)
-        maxDepth = 10;
-    else if (totalCoupPossible >= 3)
         maxDepth = 11;
     else if (totalCoupPossible >= 2)
         maxDepth = 12;
     else
         maxDepth = 0;
 
-    cout << "Profondeur max : " << maxDepth << " pour " << totalCoupPossible << "coups" << endl;
+    cout << "Profondeur max : " << maxDepth << " pour " << totalCoupPossible << " coups" << endl;
 
     for (threadIndex = 0; threadIndex < indexsPerThreads->size(); threadIndex++) {
-        threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &values, &maxDepth] (int t) {
+        threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &values, &maxDepth] (int t) {
             for (int i = 0; i < indexsPerThreads[t].size(); i++) {
                 struct Array2DIndex indexs = indexsPerThreads[t][i];
                 Board nextBoard = board;
                 nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
-                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, Engine::getNextPlayer(player), false, maxDepth, cpt, numeric_limits<int>::min(), numeric_limits<int>::max());
+                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, numeric_limits<int>::min(), numeric_limits<int>::max(), cptCut);
             }
         }, threadIndex);
     }
@@ -73,22 +73,24 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         }
     }
 
-    cout << cpt->load() << " appels de minmax" << endl;
-    for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
-    cout << endl;
+    cout << cpt->load() << " minmaxs et " << cptCut->load() << " cuts." << endl;
+    /*for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
+    cout << endl;*/
     end = chrono::system_clock::now();
     chrono::duration<double> elapsed_seconds = end - start;
     cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
     delete cpt;
+    delete cptCut;
 
     return indexMaxValueArray(values);
 }
 
-int AI::minimaxAlphaBeta(Board board, int player, bool isMax, int maxDepth, atomic<int> *cpt, int alpha, int beta) {
+int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
     cpt->fetch_add(1);
 
-    if (maxDepth == 0 || board.positionFinale()) {
-        return evaluation(board, player, maxDepth);
+    if (depth == maxDepth || board.positionFinale()) {
+        int eval = evaluation(board, maxPlayer, depth);
+        return eval;
     } 
 
     if (isMax) {
@@ -100,11 +102,12 @@ int AI::minimaxAlphaBeta(Board board, int player, bool isMax, int maxDepth, atom
                 if (board.isPossibleMove(player, hole, colorC)) {
                     Board posNext = board;
                     posNext.playMove(player, hole, colorC);
-                    int eval = minimaxAlphaBeta(posNext,  Engine::getNextPlayer(player), false, maxDepth - 1, cpt, alpha, beta);
+                    int eval = minimaxAlphaBeta(posNext, maxPlayer, Engine::getNextPlayer(player), false, depth + 1, maxDepth, cpt, alpha, beta, cptCut);
                     value = max(value, eval);
                 }
                 alpha = max(alpha, value);
                 if (beta <= alpha) {
+                    cptCut->fetch_add(1);
                     return value;
                 }
             }
@@ -120,11 +123,12 @@ int AI::minimaxAlphaBeta(Board board, int player, bool isMax, int maxDepth, atom
                 if (board.isPossibleMove(player, hole, colorC)) {
                     Board posNext = board;
                     posNext.playMove(player, hole, colorC);
-                    int eval = minimaxAlphaBeta(posNext,  Engine::getNextPlayer(player), true, maxDepth - 1, cpt, alpha, beta);
+                    int eval = minimaxAlphaBeta(posNext, maxPlayer, Engine::getNextPlayer(player), true, depth + 1, maxDepth, cpt, alpha, beta, cptCut);
                     value = min(value, eval);
                 }
                 beta = min(beta, value);
                 if (beta <= alpha) {
+                    cptCut->fetch_add(1);
                     return value;
                 }
             }
@@ -133,24 +137,18 @@ int AI::minimaxAlphaBeta(Board board, int player, bool isMax, int maxDepth, atom
     }
 }
 
-int AI::evaluation(Board board, int player, int depth) {
-    if (board.isWinning(1))
-        return 64;
-    if (board.isLoosing(1))
-        return -64;
+int AI::evaluation(Board board, int maxPlayer, int depth) {
+    if (board.isWinning(maxPlayer))
+        return numeric_limits<int>::max() - depth;
+    if (board.isLoosing(maxPlayer))
+        return numeric_limits<int>::min() + depth;
     if (board.draw())
         return 0;
 
-    int quality = (board.getAtticPlayer(1) - board.getAtticPlayer(0));
+    int iaAttic = board.getAtticPlayer(maxPlayer);
+    int playerAttic = board.getAtticPlayer(Engine::getNextPlayer(maxPlayer));
 
-    for (int i = 0; i < 8; i++) {
-        int idx = i * 2 + 1;
-        if (board.blueHoles[idx] + board.redHoles[idx] == 2 || board.blueHoles[idx] + board.redHoles[idx] == 3) 
-            quality -= 2;
-        if (board.blueHoles[idx] + board.redHoles[idx] > 6) quality += 1;
-    }
-
-    return quality;
+    return iaAttic - playerAttic;
 }
 
 struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
@@ -168,4 +166,33 @@ struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
     }
 
     return indexs;
+}
+
+
+
+int AI::negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
+    cpt->fetch_add(1);
+
+    if (depth == maxDepth || board.positionFinale())
+        return evaluation(board, player, depth);
+
+    int value = numeric_limits<int>::min();
+    for (int color = 0; color < 2; color++) {
+        for (int hole = 0; hole < 16; hole++) {
+            char colorC = color == 0 ? 'R' : 'B';
+
+            if (board.isPossibleMove(player, hole, colorC)) {
+                Board posNext = board;
+                posNext.playMove(player, hole, colorC);
+                int nega = -negamaxAlphaBeta(posNext, Engine::getNextPlayer(player), depth + 1, maxDepth, cpt, -beta, -alpha, cptCut);
+                value = max(value, nega);
+                alpha = max(alpha, value);
+                if (alpha >= beta) {
+                    return value;
+                    cptCut->fetch_add(1);
+                }
+            }
+        }
+    }
+    return value;
 }
