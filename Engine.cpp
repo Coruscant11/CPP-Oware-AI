@@ -7,6 +7,10 @@
 #define cBLUE    "\033[34m"      
 #define cYELLOW  "\033[33m"
 #define cGREEN   "\033[32m" 
+#define cGREENTURN "\033[32;4m"
+#define cYELLOWTURN "\033[33;4m"
+#define cGREENPLAY "\033[32;1;4m"
+#define cYELLOWPLAY "\033[33;1;4m"
 
 Engine::Engine() {
 	cout << "Does the player begin ? (y/n) : ";
@@ -21,11 +25,12 @@ void Engine::run() {
 	bool isFinished = false;
 
 	while (!isFinished) {
+		cout << endl;
 
 		if (actualPlayer == 0)
-			cout << cGREEN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
+			cout << cGREENTURN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
 		else
-			cout << cYELLOW << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
+			cout << cYELLOWTURN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
 
 		gameBoard.printBoard();
 
@@ -35,9 +40,9 @@ void Engine::run() {
             struct Array2DIndex decision = AI::decisionMinMax(aiPlayer, gameBoard);
             choice = decisionMinMaxToChoice(decision);
 			if (aiPlayer == 0)
-            	cout << cGREEN << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
+            	cout << cGREENPLAY << "IA PLAY : " << choice.hole+1 << choice.color << cRESET << endl;
 			else
-				cout << cYELLOW << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
+				cout << cYELLOWPLAY << "IA PLAY : " << choice.hole+1 << choice.color << cRESET << endl;
         }
         else {
             choice = askChoice(actualPlayer);
