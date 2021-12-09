@@ -2,7 +2,17 @@
 #define AWALECUSTOM_AI_H
 
 #include <atomic>
+#include <limits>
+#include <iostream>
+#include <thread>
+#include <future>
+#include <vector>
+#include <chrono>
+#include <ctime>
 #include "Board.h"
+
+
+using namespace std;
 
 struct Array2DIndex {
     int colorIndex;
@@ -13,14 +23,10 @@ class AI {
 public:
     AI();
     ~AI();
-    static struct Array2DIndex decisionMinMax(int player, Board board, int maxDepth);
-
+    static struct Array2DIndex decisionMinMax(int player, Board board);
 private:
-    static int valueMinMax(Board board, int player, int depth, int depthMax, std::atomic<int> *cpt);
+    static int minimaxAlphaBeta(Board board, int player, bool isMax, int maxDepth, std::atomic<int> *cpt, int alpha, int beta); 
     static int evaluation(Board board, int player, int depth);
-
-    static int minValueArray(int values[][16]);
-    static int maxValueArray(int values[][16]);
     static struct Array2DIndex indexMaxValueArray(int values[][16]);
 };
 

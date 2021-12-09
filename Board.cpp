@@ -172,6 +172,7 @@ bool Board::isPossibleMove(int player, int move, char color){
             }
         }
     }
+    return false;
 }
 
 bool Board::positionFinale() {
@@ -181,7 +182,10 @@ bool Board::positionFinale() {
     if (checkHasMoreThanHalfSeeds(0) ||checkHasMoreThanHalfSeeds(1)) {
         return true;
     }
-
+    if (checkFamine(0) || checkFamine(1)) {
+        return true;
+    }
+    return false;
 }
 
 int Board::checkWin() {
