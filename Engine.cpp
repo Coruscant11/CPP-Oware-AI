@@ -34,7 +34,10 @@ void Engine::run() {
         if (actualPlayer == aiPlayer){
             struct Array2DIndex decision = AI::decisionMinMax(aiPlayer, gameBoard);
             choice = decisionMinMaxToChoice(decision);
-            cout << cYELLOW << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
+			if (aiPlayer == 0)
+            	cout << cGREEN << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
+			else
+				cout << cYELLOW << "L'IA joue : " << choice.hole+1 << " " << choice.color << cRESET << endl;
         }
         else {
             choice = askChoice(actualPlayer);
