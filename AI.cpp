@@ -42,15 +42,15 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     }
 
     if (totalCoupPossible >= 14) 
-        maxDepth = 8;
+        maxDepth = 7;
     else if (totalCoupPossible >= 12)
-        maxDepth = 9;
+        maxDepth = 8;
     else if (totalCoupPossible >= 10)
-        maxDepth = 10;
+        maxDepth = 9;
     else if (totalCoupPossible >= 6)
-        maxDepth = 12;
+        maxDepth = 10;
     else if (totalCoupPossible >= 2)
-        maxDepth = 13;
+        maxDepth = 11;
     else
         maxDepth = 0;
 
@@ -74,8 +74,8 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     }
 
     cout << cpt->load() << " minmaxs et " << cptCut->load() << " cuts." << endl;
-    /*for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
-    cout << endl;*/
+    for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
+    cout << endl;
     end = chrono::system_clock::now();
     chrono::duration<double> elapsed_seconds = end - start;
     cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
@@ -139,16 +139,72 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
 
 int AI::evaluation(Board board, int maxPlayer, int depth) {
     if (board.isWinning(maxPlayer))
-        return numeric_limits<int>::max() - depth;
+        return 10000000 - depth;
     if (board.isLoosing(maxPlayer))
-        return numeric_limits<int>::min() + depth;
+        return -10000000 + depth;
     if (board.draw())
         return 0;
 
+    int quality = 0;
+    
     int iaAttic = board.getAtticPlayer(maxPlayer);
     int playerAttic = board.getAtticPlayer(Engine::getNextPlayer(maxPlayer));
 
-    return iaAttic - playerAttic;
+    for (int color = 0; color < 2; color++) {
+        for (int hole = 0; hole < 16; hole++) {
+            int redAmount = board.redHoles[hole];
+            int blueAmount = board.blueHoles[hole];
+            int sumSeeds = redAmount + blueAmount;
+            int actualPlayer = hole % 2;
+
+            int nextHoleRed = hole;
+            while (redAmount > 0) {
+                nextHoleRed = (nextHoleRed + 1) % 16;
+                redAmount--;
+                int tmpSum = board.redHoles[nextHoleRed] + board.blueHoles[nextHoleRed];
+                if (tmpSum == 1 || tmpSum == 2) {
+                    if (actualPlayer == maxPlayer) {
+                        quality++;
+                    }
+                    else {
+                        quality--;
+                    }
+                }
+            }
+
+            redAmount = board.redHoles[hole];
+            blueAmount = board.blueHoles[hole];
+            int nextHoleBlue = hole;
+            while (blueAmount > 0) {
+                while(nextHoleBlue % 2 != Engine::getNextPlayer(actualPlayer)) {
+                    nextHoleBlue = (nextHoleBlue + 1) % 16; 
+                }
+                blueAmount--;
+
+                int tmpSum = board.redHoles[nextHoleRed] + board.blueHoles[nextHoleRed];
+                if (tmpSum == 1 || tmpSum == 2) {
+                    if (actualPlayer == maxPlayer) {
+                        quality++;
+                    }
+                    else {
+                        quality--;
+                    }
+                }
+            }
+
+            if (sumSeeds == 0) {
+                if (actualPlayer == maxPlayer) {
+                    quality--;
+                }
+                else {
+                    quality++;
+                }
+            }
+        }
+    }
+
+    quality += (iaAttic - playerAttic);
+    return quality;
 }
 
 struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
@@ -167,8 +223,6 @@ struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
 
     return indexs;
 }
-
-
 
 int AI::negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
     cpt->fetch_add(1);
