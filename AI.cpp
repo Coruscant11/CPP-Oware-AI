@@ -43,14 +43,14 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
 
     if (totalCoupPossible >= 14) 
         maxDepth = 7;
-    else if (totalCoupPossible >= 12)
-        maxDepth = 8;
     else if (totalCoupPossible >= 10)
+        maxDepth = 8;
+    else if (totalCoupPossible >= 7)
         maxDepth = 9;
-    else if (totalCoupPossible >= 6)
-        maxDepth = 10;
-    else if (totalCoupPossible >= 2)
+    else if (totalCoupPossible >= 5)
         maxDepth = 11;
+    else if (totalCoupPossible >= 2)
+        maxDepth = 13;
     else
         maxDepth = 0;
 
@@ -63,6 +63,7 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
                 Board nextBoard = board;
                 nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
                 values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, numeric_limits<int>::min(), numeric_limits<int>::max(), cptCut);
+                //values[indexs.colorIndex][indexs.holeIndex] = negamaxAlphaBeta(nextBoard, player, 0, maxDepth, cpt, -1000000, 1000000, cptCut);
             }
         }, threadIndex);
     }
@@ -94,7 +95,7 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
     } 
 
     if (isMax) {
-        int value = numeric_limits<int>::min();
+        int value = -10000000;
         for (int color = 0; color < 2; color++) {
             for (int hole = 0; hole < 16; hole++) {
                 char colorC = color == 0 ? 'R' : 'B';
@@ -115,7 +116,7 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
         return value;
     }
     else {
-        int value = numeric_limits<int>::max();
+        int value = 10000000;
         for (int color = 0; color < 2; color++) {
             for (int hole = 0; hole < 16; hole++) {
                 char colorC = color == 0 ? 'R' : 'B';
@@ -146,9 +147,17 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
         return 0;
 
     int quality = 0;
-    
+    int qualityHoles = 0;
+    int qualityEmpty = 0;
+    int qualityAttics = 0;
+    int qualityDifference = 0;
+
     int iaAttic = board.getAtticPlayer(maxPlayer);
     int playerAttic = board.getAtticPlayer(Engine::getNextPlayer(maxPlayer));
+    qualityAttics = iaAttic - playerAttic;
+    
+    int totalIaSeeds = 0;
+    int totalPlayerSeeds = 0;
 
     for (int color = 0; color < 2; color++) {
         for (int hole = 0; hole < 16; hole++) {
@@ -156,6 +165,11 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
             int blueAmount = board.blueHoles[hole];
             int sumSeeds = redAmount + blueAmount;
             int actualPlayer = hole % 2;
+            if (actualPlayer == maxPlayer)
+                totalIaSeeds += sumSeeds;
+            else {
+                totalPlayerSeeds += sumSeeds;
+            }
 
             int nextHoleRed = hole;
             while (redAmount > 0) {
@@ -164,10 +178,10 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
                 int tmpSum = board.redHoles[nextHoleRed] + board.blueHoles[nextHoleRed];
                 if (tmpSum == 1 || tmpSum == 2) {
                     if (actualPlayer == maxPlayer) {
-                        quality++;
+                        qualityHoles++;
                     }
                     else {
-                        quality--;
+                        qualityHoles--;
                     }
                 }
             }
@@ -184,26 +198,33 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
                 int tmpSum = board.redHoles[nextHoleRed] + board.blueHoles[nextHoleRed];
                 if (tmpSum == 1 || tmpSum == 2) {
                     if (actualPlayer == maxPlayer) {
-                        quality++;
+                        qualityHoles++;
                     }
                     else {
-                        quality--;
+                        qualityHoles--;
                     }
                 }
             }
 
             if (sumSeeds == 0) {
                 if (actualPlayer == maxPlayer) {
-                    quality--;
+                    qualityEmpty--;
                 }
                 else {
-                    quality++;
+                    qualityEmpty++;
                 }
             }
         }
     }
 
-    quality += (iaAttic - playerAttic);
+    if (totalIaSeeds > 16) {
+        qualityDifference++;
+    }
+    else {
+        qualityDifference--;
+    }
+
+    quality = (1 * qualityAttics) + (0 * qualityEmpty) + (2 * qualityHoles) + (0*qualityDifference);
     return quality;
 }
 
@@ -224,29 +245,58 @@ struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
     return indexs;
 }
 
-int AI::negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
+/*int AI::negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
     cpt->fetch_add(1);
 
     if (depth == maxDepth || board.positionFinale())
         return evaluation(board, player, depth);
 
-    int value = numeric_limits<int>::min();
+    Board moves[16];
+    int movesEvals[16];
+    int moveIndex = 0;
+
     for (int color = 0; color < 2; color++) {
         for (int hole = 0; hole < 16; hole++) {
             char colorC = color == 0 ? 'R' : 'B';
-
             if (board.isPossibleMove(player, hole, colorC)) {
-                Board posNext = board;
-                posNext.playMove(player, hole, colorC);
-                int nega = -negamaxAlphaBeta(posNext, Engine::getNextPlayer(player), depth + 1, maxDepth, cpt, -beta, -alpha, cptCut);
-                value = max(value, nega);
-                alpha = max(alpha, value);
-                if (alpha >= beta) {
-                    return value;
-                    cptCut->fetch_add(1);
-                }
+                moves[moveIndex] = board;
+                moves[moveIndex].playMove(player, hole, colorC);
+                movesEvals[moveIndex] = evaluationNega(moves[moveIndex], player, depth);
+            }
+            else {
+                movesEvals[moveIndex] = numeric_limits<int>::min();
+            }
+        }
+    }
+    sortMoves(moves, movesEvals);
+
+    int value = -1000000;
+    for (int i = 0; i < 16; i++) {
+        if (movesEvals[i] != numeric_limits<int>::min()) {
+            value = max(value, -negamaxAlphaBeta(moves[i], player, depth + 1, maxDepth, cpt, -beta, -alpha, cptCut));
+            alpha = max(alpha, value);
+            if (alpha >= beta) {
+                cptCut->fetch_add(1);
+                break;
             }
         }
     }
     return value;
-}
+}*/
+
+/*void AI::sortMoves(Board moves[16], int movesEvals[16]) {
+    for (int i = 0; i < 16; i++) {
+        Board xMoves = moves[i];
+        int xEvals = movesEvals[i];
+
+        int j = i;
+        while (j > 0 && movesEvals[j-1] > xEvals) {
+            movesEvals[j] = movesEvals[j-1];
+            moves[j] = moves[j-1];
+            j = j - 1;
+        }
+
+        movesEvals[j] = xEvals;
+        moves[j] = xMoves;
+    }
+}*/
