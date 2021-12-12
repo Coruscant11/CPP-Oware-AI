@@ -42,13 +42,13 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     }
 
     if (totalCoupPossible >= 14) 
-        maxDepth = 7;
+        maxDepth = 5;
     else if (totalCoupPossible >= 12)
-        maxDepth = 8;
+        maxDepth = 6;
     else if (totalCoupPossible >= 10)
-        maxDepth = 9;
+        maxDepth = 8;
     else if (totalCoupPossible >= 6)
-        maxDepth = 10;
+        maxDepth = 9;
     else if (totalCoupPossible >= 2)
         maxDepth = 11;
     else
@@ -62,7 +62,7 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
                 struct Array2DIndex indexs = indexsPerThreads[t][i];
                 Board nextBoard = board;
                 nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
-                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, numeric_limits<int>::min(), numeric_limits<int>::max(), cptCut);
+                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -100000, 100000, cptCut);
             }
         }, threadIndex);
     }
@@ -90,17 +90,18 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
 
     if (depth == maxDepth || board.positionFinale(player)) {
         int eval;
+
         if (player == 0){
-            eval = evaluation1(board,maxPlayer, depth);
+            eval = evaluation2(board,maxPlayer, depth);
         }
         else{
-            eval = evaluation2(board, maxPlayer, depth);
+            eval = evaluation1(board, maxPlayer, depth);
         }
         return eval;
-    } 
+    }
 
     if (isMax) {
-        int value = numeric_limits<int>::min();
+        int value = -100000;
         for (int color = 0; color < 2; color++) {
             for (int hole = 0; hole < 16; hole++) {
                 char colorC = color == 0 ? 'R' : 'B';
@@ -121,7 +122,7 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
         return value;
     }
     else {
-        int value = numeric_limits<int>::max();
+        int value = 100000;
         for (int color = 0; color < 2; color++) {
             for (int hole = 0; hole < 16; hole++) {
                 char colorC = color == 0 ? 'R' : 'B';
@@ -213,6 +214,15 @@ int AI::evaluation1(Board board, int maxPlayer, int depth) {
 }
 
 int AI::evaluation2(Board board, int maxPlayer, int depth){
+    if (board.isWinning(maxPlayer)){
+        cout << "Player " << maxPlayer+1 << " see is winning " << 10000000 - depth << endl;
+        return 10000000 - depth;
+    }
+    if (board.isLoosing(maxPlayer))
+        return -10000000;
+    if (board.draw(maxPlayer))
+        return 0;
+
     int seedDifference = board.getAtticPlayer(maxPlayer) - board.getAtticPlayer((maxPlayer+1)%2);
     int amountSeedOpponent = 0;
     for (int i=0; i<16; i++){
@@ -224,8 +234,17 @@ int AI::evaluation2(Board board, int maxPlayer, int depth){
 }
 
 int AI::basicEvaluation(Board board, int maxPlayer, int depth) {
+    if (board.isWinning(maxPlayer)){
+        cout << "Player " << maxPlayer+1 << " see is winning " << 10000000 - depth << endl;
+        return 10000000 - depth;
+    }
+    if (board.isLoosing(maxPlayer))
+        return -10000000;
+    if (board.draw(maxPlayer))
+        return 0;
     return board.getAtticPlayer(maxPlayer) - board.getAtticPlayer((maxPlayer+1)%2);
 }
+
 
 
 struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
