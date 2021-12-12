@@ -6,7 +6,7 @@
 #define LOWERBOUND 1
 #define UPPERBOUND 2
 
-#define THREAD_AMOUNT 8
+#define THREAD_AMOUNT 4
 
 AI::AI() {
 
@@ -62,8 +62,12 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
 
     cout << "Profondeur max : " << maxDepth +  3<< " pour " << totalCoupPossible << " coups" << endl;
 
-    for (threadIndex = 0; threadIndex < indexsPerThreads->size(); threadIndex++) {
+    for (threadIndex = 0; threadIndex < THREAD_AMOUNT; threadIndex++) {
+        cout << "ti : " << threadIndex << endl;
         threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &cptHf, &values, &maxDepth] (int t) {
+            cout << "start thread " << t << endl;
+            chrono::time_point<chrono::system_clock> startT, endT;
+            startT = chrono::system_clock::now();
             for (int i = 0; i < indexsPerThreads[t].size(); i++) {
                 struct Array2DIndex indexs = indexsPerThreads[t][i];
                 Board nextBoard = board;
@@ -71,6 +75,9 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
                 values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -10000000, 10000000, cptCut, cptHf);
                 //values[indexs.colorIndex][indexs.holeIndex] = negamaxAlphaBeta(nextBoard, player, 0, maxDepth, cpt, -1000000, 1000000, cptCut);
             }
+            endT = chrono::system_clock::now();
+            chrono::duration<double> es = endT - startT;
+            cout << "end thread " << t << " : " << es.count() << "s" << endl;
         }, threadIndex);
     }
 
@@ -305,7 +312,7 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
         }
     }
     if (maxPlayer == 1)
-        quality = (2 * qualityAttic) + (1 * qualityWeak) + (1 * qualityEmpty) + (1 * qualitySum) + (0 * qualityOffense);
+        quality = (1 * qualityAttic) + (1 * qualityWeak) + (1 * qualityEmpty) + (1 * qualitySum) + (1 * qualityOffense);
     return quality;
 }
 
