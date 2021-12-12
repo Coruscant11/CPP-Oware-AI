@@ -175,30 +175,31 @@ bool Board::isPossibleMove(int player, int move, char color){
     return false;
 }
 
-bool Board::positionFinale() {
+bool Board::positionFinale(int player) {
     if (checkLessHeightSeed()) {
         return true;
     }
     if (checkHasMoreThanHalfSeeds(0) ||checkHasMoreThanHalfSeeds(1)) {
         return true;
     }
-    if (checkFamine(0) || checkFamine(1)) {
+    if (checkFamine(player)) {
         return true;
     }
     return false;
 }
 
-int Board::checkWin() {
-    for (int player = 0; player < 2; player++) {
-        if (checkFamine(Engine::getNextPlayer(player))) return player;
-        if (checkHasMoreThanHalfSeeds(player)) return player;
+int Board::checkWin(int player) {
+    if (checkFamine(player)) {
+        return Engine::getNextPlayer(player);
+    }
+    if (checkHasMoreThanHalfSeeds(Engine::getNextPlayer(player))) {
+        return Engine::getNextPlayer(player);
     }
 
     if (checkLessHeightSeed()) {
         if (playersAttic[0] == playersAttic[1]) return 2;
         else return playersAttic[0] > playersAttic[1] ? 0 : 1;
     }
-
     return -1;
 }
 
@@ -210,7 +211,7 @@ bool Board::checkFamine(int player) {
         }
     }
 
-    //void giveAllSeedsToPlayer(int player);
+    giveAllSeedsToPlayer(player);
     return true;
 }
 
@@ -247,15 +248,15 @@ void Board::giveAllSeedsToPlayer(int player) {
 }
 
 bool Board::isLoosing(int player) {
-    return checkWin() == Engine::getNextPlayer(player);
+    return checkWin(player) == Engine::getNextPlayer(player);
 }
 
 bool Board::isWinning(int player) {
-    return checkWin() == player;
+    return checkWin(player) == player;
 }
 
-bool Board::draw() {
-    return checkWin() == 2;
+bool Board::draw(int player) {
+    return checkWin(player) == 2;
 }
 
 

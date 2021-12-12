@@ -32,10 +32,21 @@ void Engine::run() {
 		else
 			cout << cYELLOWTURN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
 
-		gameBoard.printBoard();
+
+        gameBoard.printBoard();
+
+        int winner = gameBoard.checkWin(actualPlayer);
+        if (winner >= 0) {
+            isFinished = true;
+            gameBoard.printBoard();
+            displayWinner(winner);
+            return;
+        }
 
         struct Choice choice;
 
+        // 1 AI 1 Player
+        /*
         if (actualPlayer == aiPlayer){
             struct Array2DIndex decision = AI::decisionMinMax(aiPlayer, gameBoard);
             choice = decisionMinMaxToChoice(decision);
@@ -47,15 +58,25 @@ void Engine::run() {
         else {
             choice = askChoice(actualPlayer);
         }
+        */
+         //
 
+        // 2 AI
+        struct Array2DIndex decision = AI::decisionMinMax(actualPlayer, gameBoard);
+        choice = decisionMinMaxToChoice(decision);
+        if (actualPlayer == 0){
+            cout << cGREENPLAY << "IA PLAY : " << choice.hole+1 << choice.color << cRESET << endl;
+        }
+        else{
+            cout << cYELLOWPLAY << "IA PLAY : " << choice.hole+1 << choice.color << cRESET << endl;
+        }
+         //
+
+
+        // 2 Player
+        //choice = askChoice(actualPlayer);
+        //
         gameBoard.playMove(actualPlayer, choice.hole, choice.color);
-
-		int winner = gameBoard.checkWin();
-		if (winner >= 0) {
-			isFinished = true;
-            gameBoard.printBoard();
-			displayWinner(winner);
-		}
 
 		updateActualPlayer();
 		cout << endl;

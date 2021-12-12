@@ -88,8 +88,14 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
 int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
     cpt->fetch_add(1);
 
-    if (depth == maxDepth || board.positionFinale()) {
-        int eval = evaluation(board, maxPlayer, depth);
+    if (depth == maxDepth || board.positionFinale(player)) {
+        int eval;
+        if (player == 0){
+            eval = evaluation1(board,maxPlayer, depth);
+        }
+        else{
+            eval = evaluation2(board, maxPlayer, depth);
+        }
         return eval;
     } 
 
@@ -119,7 +125,6 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
         for (int color = 0; color < 2; color++) {
             for (int hole = 0; hole < 16; hole++) {
                 char colorC = color == 0 ? 'R' : 'B';
-
                 if (board.isPossibleMove(player, hole, colorC)) {
                     Board posNext = board;
                     posNext.playMove(player, hole, colorC);
@@ -137,12 +142,12 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
     }
 }
 
-int AI::evaluation(Board board, int maxPlayer, int depth) {
+int AI::evaluation1(Board board, int maxPlayer, int depth) {
     if (board.isWinning(maxPlayer))
         return 10000000 - depth;
     if (board.isLoosing(maxPlayer))
         return -10000000 + depth;
-    if (board.draw())
+    if (board.draw(maxPlayer))
         return 0;
 
     int quality = 0;
@@ -207,6 +212,22 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
     return quality;
 }
 
+int AI::evaluation2(Board board, int maxPlayer, int depth){
+    int seedDifference = board.getAtticPlayer(maxPlayer) - board.getAtticPlayer((maxPlayer+1)%2);
+    int amountSeedOpponent = 0;
+    for (int i=0; i<16; i++){
+        if (i%2 == 0){
+            amountSeedOpponent += board.redHoles[i] + board.blueHoles[i];
+        }
+    }
+    return seedDifference*2 + (64-amountSeedOpponent);
+}
+
+int AI::basicEvaluation(Board board, int maxPlayer, int depth) {
+    return board.getAtticPlayer(maxPlayer) - board.getAtticPlayer((maxPlayer+1)%2);
+}
+
+
 struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
     struct Array2DIndex indexs;
     indexs.colorIndex = 0;
@@ -224,11 +245,12 @@ struct Array2DIndex AI::indexMaxValueArray(int values[][16]) {
     return indexs;
 }
 
+/*
 int AI::negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
     cpt->fetch_add(1);
 
     if (depth == maxDepth || board.positionFinale())
-        return evaluation(board, player, depth);
+        //return evaluation(board, player, depth);
 
     int value = numeric_limits<int>::min();
     for (int color = 0; color < 2; color++) {
@@ -250,3 +272,4 @@ int AI::negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomi
     }
     return value;
 }
+ */

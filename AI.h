@@ -27,7 +27,11 @@ public:
 private:
     static int minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut); 
     static int negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut);
-    static int evaluation(Board board, int player, int depth);
+
+    static int evaluation2(Board board, int player, int depth);
+    static int evaluation1(Board board, int player, int depth);
+    static int basicEvaluation(Board board, int maxPlayer, int depth);
+
     static struct Array2DIndex indexMaxValueArray(int values[][16]);
 };
 
