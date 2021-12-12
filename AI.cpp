@@ -6,6 +6,8 @@
 #define LOWERBOUND 1
 #define UPPERBOUND 2
 
+#define THREAD_AMOUNT 8
+
 AI::AI() {
 
 }
@@ -25,9 +27,9 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
 
     int values[2][16]; // 0 -> Bleu; 1 -> Rouge
 
-    thread threads[4];
+    thread threads[THREAD_AMOUNT];
     int threadIndex = 0;
-    vector<struct Array2DIndex> indexsPerThreads[4];
+    vector<struct Array2DIndex> indexsPerThreads[THREAD_AMOUNT];
 
     int totalCoupPossible = 0;
     int tIndex = 0;
@@ -38,7 +40,7 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
                 indexs.colorIndex = color;
                 indexs.holeIndex = hole;
                 indexsPerThreads[tIndex].push_back(indexs);
-                tIndex = (tIndex + 1) % 4;
+                tIndex = (tIndex + 1) % THREAD_AMOUNT;
                 totalCoupPossible++;
             }
             else {
@@ -48,11 +50,11 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     }
 
     if (totalCoupPossible >= 11) 
-        maxDepth = 8;
+        maxDepth = 9;
     else if (totalCoupPossible >= 8)
         maxDepth = 11;
     else if (totalCoupPossible >= 5)
-        maxDepth = 12;
+        maxDepth = 13;
     else if (totalCoupPossible >= 2)
         maxDepth = 13;
     else
@@ -72,7 +74,7 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         }, threadIndex);
     }
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < THREAD_AMOUNT; i++) {
         if (threads[i].joinable()) {
             threads[i].join();
         }
@@ -303,7 +305,7 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
         }
     }
     if (maxPlayer == 1)
-        quality = (1 * qualityAttic) + (1 * qualityWeak) + (1 * qualityEmpty) + (1 * qualitySum) + (1 * qualityOffense);
+        quality = (2 * qualityAttic) + (1 * qualityWeak) + (1 * qualityEmpty) + (1 * qualitySum) + (0 * qualityOffense);
     return quality;
 }
 
