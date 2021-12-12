@@ -7,4 +7,4 @@ CMakeLists.txt
 *.exe
 *.json
 AI.exe
-.vscode/launch.json
+.vscode/
