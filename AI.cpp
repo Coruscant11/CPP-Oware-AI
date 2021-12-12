@@ -1,6 +1,10 @@
 #include "AI.h"
 #include "Engine.h"
-#include <vector>
+#include "hash.h"
+
+#define EXACT 0
+#define LOWERBOUND 1
+#define UPPERBOUND 2
 
 AI::AI() {
 
@@ -17,6 +21,7 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
 
     atomic<int> *cpt = new atomic<int>(0);
     atomic<int> *cptCut = new atomic<int>(0);
+    atomic<int> *cptHf = new atomic<int>(0);
 
     int values[2][16]; // 0 -> Bleu; 1 -> Rouge
 
@@ -56,12 +61,12 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     cout << "Profondeur max : " << maxDepth +  3<< " pour " << totalCoupPossible << " coups" << endl;
 
     for (threadIndex = 0; threadIndex < indexsPerThreads->size(); threadIndex++) {
-        threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &values, &maxDepth] (int t) {
+        threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &cptHf, &values, &maxDepth] (int t) {
             for (int i = 0; i < indexsPerThreads[t].size(); i++) {
                 struct Array2DIndex indexs = indexsPerThreads[t][i];
                 Board nextBoard = board;
                 nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
-                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -10000000, 10000000, cptCut);
+                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -10000000, 10000000, cptCut, cptHf);
                 //values[indexs.colorIndex][indexs.holeIndex] = negamaxAlphaBeta(nextBoard, player, 0, maxDepth, cpt, -1000000, 1000000, cptCut);
             }
         }, threadIndex);
@@ -73,7 +78,7 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         }
     }
 
-    cout << cpt->load() << " minmaxs et " << cptCut->load() << " cuts." << endl;
+    cout << cpt->load() << " minmaxs, " << cptCut->load() << " cuts, " << cptHf->load() << " nodes reutilisees via la TP." << endl;
     /*for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
     cout << endl;*/
     end = chrono::system_clock::now();
@@ -85,8 +90,31 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
     return indexMaxValueArray(values);
 }
 
-int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut) {
+int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut, atomic<int> *cptHf) {
     cpt->fetch_add(1);
+
+    int alphaOrig = alpha;
+
+    auto currentHash = Hash::computeHash(board);
+    if (Hash::contains(currentHash)) {
+        struct HashedBoard hbEntry = Hash::getValue(currentHash);
+        if (hbEntry.depth >= depth) {
+            cptHf->fetch_add(1);
+            if (hbEntry.flag = EXACT) {
+                return hbEntry.eval;
+            }
+            else if (hbEntry.flag == LOWERBOUND) {
+                alpha = max(alpha, hbEntry.eval);
+            }
+            else if (hbEntry.flag == UPPERBOUND) {
+                beta = min(beta, hbEntry.eval);
+            }
+            if (beta <= alpha) {
+                return hbEntry.eval;
+            }
+        }
+    }
+
 
     if (depth == maxDepth || board.positionFinale()) {
         int eval = evaluation(board, maxPlayer, depth);
@@ -146,87 +174,52 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
     }
 
 
+    int value;
     if (isMax) {
-        int value = -10000000;
+        value = -10000000;
         for (int i = 0; i < 32; i++) {
             if (moves[i].eval > numeric_limits<int>::min()) {
-                int eval = minimaxAlphaBeta(moves[i].move, maxPlayer, Engine::getNextPlayer(player), false, depth + 1, maxDepth, cpt, alpha, beta, cptCut);
+                int eval = minimaxAlphaBeta(moves[i].move, maxPlayer, Engine::getNextPlayer(player), false, depth + 1, maxDepth, cpt, alpha, beta, cptCut, cptHf);
                 value = max(value, eval);
             }
             alpha = max(alpha, value);
             if (beta <= alpha) {
                 cptCut->fetch_add(1);
-                return value;
+                break;
             }
         }
-        return value;
     }
     else {
-        int value = 10000000;
+        value = 10000000;
         for (int i = 0; i < 32; i++) {
             if (moves[i].eval > numeric_limits<int>::min()) {
-                int eval = minimaxAlphaBeta(moves[i].move, maxPlayer, Engine::getNextPlayer(player), true, depth + 1, maxDepth, cpt, alpha, beta, cptCut);
+                int eval = minimaxAlphaBeta(moves[i].move, maxPlayer, Engine::getNextPlayer(player), true, depth + 1, maxDepth, cpt, alpha, beta, cptCut, cptHf);
                 value = min(value, eval);
             }
             beta = min(beta, value);
             if (beta <= alpha) {
                 cptCut->fetch_add(1);
-                return value;
-            }
-        }
-
-        return value;
-    }
-}
-
-vector<EvaluatedMove> AI::generateMoves(Board board, int maxPlayer, int player, int depth) {
-    vector<EvaluatedMove> moves;
-
-    for (int color = 0; color < 2; color++) {
-        for (int hole = 0; hole < 16; hole++) {
-            char colorC = color == 0 ? 'R' : 'B';
-            if (board.isPossibleMove(player, hole, colorC)) {
-                Board posNext = board;
-                posNext.playMove(player, hole, colorC);
-                int eval = evaluation(posNext, maxPlayer, depth);
-                struct EvaluatedMove ev;
-                ev.eval = eval;
-                ev.move = posNext;
-                moves.push_back(ev);
+                break;
             }
         }
     }
 
-    return moves;
-}
-
-void AI::sortMoves(vector<EvaluatedMove> moves, bool isMax) {
-    if (isMax) {
-        for (int i = 0; i < moves.size(); i++) {
-            struct EvaluatedMove xEV = moves[i];
-
-            int j = i;
-            while (j>0 && moves[j-1].eval > xEV.eval) {
-                moves[j] = moves[j-1];
-                j--;
-            }
-
-            moves[j] = xEV;
-        }
+    struct HashedBoard newHbEntry;
+    newHbEntry.zobrist_key = currentHash;
+    newHbEntry.eval = value;
+    newHbEntry.depth = depth;
+    if (value <= alphaOrig) {
+        newHbEntry.flag = UPPERBOUND;
+    }
+    else if (value >= beta) {
+        newHbEntry.flag = LOWERBOUND;
     }
     else {
-        for (int i = 0; i < moves.size(); i++) {
-            struct EvaluatedMove xEV = moves[i];
-
-            int j = i;
-            while (j>0 && moves[j-1].eval < xEV.eval) {
-                moves[j] = moves[j-1];
-                j--;
-            }
-
-            moves[j] = xEV;
-        }
+        newHbEntry.flag = EXACT;
     }
+    Hash::add(currentHash, newHbEntry);
+
+    return value;
 }
 
 int AI::evaluation(Board board, int maxPlayer, int depth) {

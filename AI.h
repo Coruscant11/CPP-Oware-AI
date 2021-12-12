@@ -30,12 +30,10 @@ public:
     ~AI();
     static struct Array2DIndex decisionMinMax(int player, Board board);
 private:
-    static int minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut); 
+    static int minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut, atomic<int> *cptHf); 
     //static int negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut);
     static int evaluation(Board board, int player, int depth);
     static struct Array2DIndex indexMaxValueArray(int values[][16]);
-    static vector<EvaluatedMove> generateMoves(Board board, int maxPlayer, int player, int depth);
-    static void sortMoves(vector<EvaluatedMove> moves, bool isMax);
 };
 
 #endif //AWALECUSTOM_AI_H
