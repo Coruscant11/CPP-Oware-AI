@@ -31,6 +31,7 @@ public:
     // Check the end of the game
     bool positionFinale();
     int checkWin();
+    int checkWinWithoutFamine();
     bool checkFamine(int player);
     bool checkHasMoreThanHalfSeeds(int player);
     bool checkLessHeightSeed();

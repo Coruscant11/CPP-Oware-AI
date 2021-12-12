@@ -188,6 +188,20 @@ bool Board::positionFinale() {
     return false;
 }
 
+int Board::checkWinWithoutFamine() {
+    for (int player = 0; player < 2; player++) {
+        if (checkHasMoreThanHalfSeeds(player)) return player;
+    }
+
+    if (checkLessHeightSeed()) {
+        if (playersAttic[0] == playersAttic[1]) return 2;
+        else return playersAttic[0] > playersAttic[1] ? 0 : 1;
+    }
+
+    return -1;
+}
+
+
 int Board::checkWin() {
     for (int player = 0; player < 2; player++) {
         if (checkFamine(Engine::getNextPlayer(player))) return player;

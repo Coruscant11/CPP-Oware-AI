@@ -12,6 +12,8 @@
 #define cGREENPLAY "\033[32;1;4m"
 #define cYELLOWPLAY "\033[33;1;4m"
 
+using namespace std;
+
 Engine::Engine() {
 	cout << "Does the player begin ? (y/n) : ";
 	char rep;
@@ -23,16 +25,22 @@ Engine::Engine() {
 
 void Engine::run() {
 	bool isFinished = false;
+	int turnNumber = 0;
 
 	while (!isFinished) {
 		cout << endl;
 
 		if (actualPlayer == 0)
-			cout << cGREENTURN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
+			cout << cGREENTURN << "PLAYER " << actualPlayer + 1 << " TURN " << ++turnNumber << cRESET << endl;
 		else
-			cout << cYELLOWTURN << "PLAYER " << actualPlayer + 1 << " TURN" << cRESET << endl;
+			cout << cYELLOWTURN << "PLAYER " << actualPlayer + 1 << " TURN " << ++turnNumber << cRESET << endl;
 
 		gameBoard.printBoard();
+
+		if (gameBoard.checkFamine(actualPlayer)) {
+			isFinished = true;
+			displayWinner(Engine::getNextPlayer(actualPlayer));
+		}
 
         struct Choice choice;
 
@@ -50,7 +58,7 @@ void Engine::run() {
 
         gameBoard.playMove(actualPlayer, choice.hole, choice.color);
 
-		int winner = gameBoard.checkWin();
+		int winner = gameBoard.checkWinWithoutFamine();
 		if (winner >= 0) {
 			isFinished = true;
             gameBoard.printBoard();
