@@ -127,11 +127,11 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
 
     if (depth == maxDepth || board.positionFinale()) {
         int eval;
-        if (maxPlayer == 0){
-            eval = evaluation_ju(board, maxPlayer, depth);
+        if (0 ==  player){
+            eval = evaluation_ju_amelioration(board, maxPlayer, depth);
         }
         else{
-            eval = evaluation_ju_amelioration(board, maxPlayer, depth);
+            eval = evaluation_ju_first(board, maxPlayer, depth);
         }
         return eval;
     } 
@@ -148,10 +148,10 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
                 posNext.playMove(player, hole, colorC);
                 int eval;
                 if (player == 0){
-                    eval = evaluation_ju(posNext, maxPlayer, depth);
+                    eval = evaluation_ju_amelioration(posNext, maxPlayer, depth);
                 }
                 else{
-                    eval = evaluation_ju_amelioration(posNext, maxPlayer, depth);
+                    eval = evaluation_ju_first(posNext, maxPlayer, depth);
                 }
                 struct EvaluatedMove ev;
                 ev.eval = eval;
@@ -328,7 +328,7 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
     return quality;
 }
 
-int AI::evaluation_ju(Board board, int maxPlayer, int depth){
+int AI::evaluation_ju_second(Board board, int maxPlayer, int depth){
     if (board.isWinning(maxPlayer))
         return 10000000 - depth;
     if (board.isLoosing(maxPlayer))
@@ -384,6 +384,59 @@ int AI::evaluation_ju(Board board, int maxPlayer, int depth){
 
 }
 
+int AI::evaluation_ju_first(Board board, int maxPlayer, int depth) {
+    if (board.isWinning(maxPlayer))
+        return 10000000 - depth;
+    if (board.isLoosing(maxPlayer))
+        return -10000000 + depth;
+    if (board.draw())
+        return 0;
+
+    int opponent = (maxPlayer+1)%2;
+    int diff_seed_attic = board.getAtticPlayer(maxPlayer) - board.getAtticPlayer(opponent);
+
+    int nbRedSeedPair = board.redHoles[0] + board.redHoles[2] + board.redHoles[4] + board.redHoles[6]+
+                        board.redHoles[8] + board.redHoles[10] + board.redHoles[12] + board.redHoles[14];
+    int nbBlueSeedPair = board.blueHoles[0] + board.blueHoles[2] + board.blueHoles[4] + board.blueHoles[6]+
+                         board.blueHoles[8] + board.blueHoles[10] + board.blueHoles[12] + board.blueHoles[14];
+    int nbSeedPair = nbRedSeedPair + nbBlueSeedPair;
+
+    int nbRedSeedImpair = board.redHoles[1] + board.redHoles[3] + board.redHoles[5] + board.redHoles[7]+
+                          board.redHoles[9] + board.redHoles[11] + board.redHoles[13] + board.redHoles[15];
+    int nbBlueSeedImpair = board.blueHoles[1] + board.blueHoles[3] + board.blueHoles[5] + board.blueHoles[7]+
+                           board.blueHoles[9] + board.blueHoles[11] + board.blueHoles[13] + board.blueHoles[15];
+    int nbSeedImpair = nbRedSeedImpair + nbBlueSeedImpair;
+
+    int nb1_2Pair= 0;
+    int nb1_2Impair = 0;
+    for (int i=0; i<16; i++){
+        if (board.redHoles[i]+board.blueHoles[i]){
+            if (i==0 || i==2 || i==4 || i==6 || i==8 || i==10 || i==12 || i==14){
+                nb1_2Pair++;
+            } else{
+                nb1_2Impair++;
+            }
+        }
+    }
+
+    int total = 0;
+    if (maxPlayer == 0){
+        total =  diff_seed_attic * 3;
+        total += (64-nbSeedImpair);
+        total += nbSeedPair;
+        total += nbBlueSeedPair;
+        total += 64 - nbRedSeedPair;
+    }
+    else{
+        total =  diff_seed_attic * 3;
+        total += 64 - nbSeedPair;
+        total += nbSeedImpair;
+        total += nbBlueSeedImpair;
+        total += 64 - nbRedSeedImpair;
+    }
+    return total;
+}
+
 int AI::evaluation_ju_amelioration(Board board, int maxPlayer, int depth) {
     if (board.isWinning(maxPlayer))
         return 10000000 - depth;
@@ -407,30 +460,34 @@ int AI::evaluation_ju_amelioration(Board board, int maxPlayer, int depth) {
                            board.blueHoles[9] + board.blueHoles[11] + board.blueHoles[13] + board.blueHoles[15];
     int nbSeedImpair = nbRedSeedImpair + nbBlueSeedImpair;
 
-    int blueQuality = 0;
-    int redQuality = 0;
-    int colorQuality = 0;
-
+    int nb1_2Pair= 0;
+    int nb1_2Impair = 0;
+    for (int i=0; i<16; i++){
+        if (board.redHoles[i]+board.blueHoles[i]){
+            if (i==0 || i==2 || i==4 || i==6 || i==8 || i==10 || i==12 || i==14){
+                nb1_2Pair++;
+            } else{
+                nb1_2Impair++;
+            }
+        }
+    }
+    // changer par rapport au début / milieu / fin de partie
+    int total = 0;
     if (maxPlayer == 0){
-        if (nbBlueSeedImpair < nbRedSeedImpair){
-            colorQuality += 1;
-        }
-        if (nbBlueSeedImpair == 0){
-            blueQuality += 10;
-        }
-
-        return diff_seed_attic*5 + (64-nbSeedImpair) + nbSeedPair + nbBlueSeedPair + colorQuality + redQuality + blueQuality ;
+        total =  diff_seed_attic * 3;
+        total += (64-nbSeedImpair);
+        total += nbSeedPair;
+        total += nbBlueSeedPair;
+        total += 64 - nbRedSeedPair;
     }
     else{
-        if (nbBlueSeedPair < nbRedSeedPair){
-            colorQuality += 1;
-        }
-        if (nbBlueSeedPair == 0){
-            blueQuality += 10;
-        }
-        return diff_seed_attic*5 + (64-nbSeedPair) + nbSeedImpair + nbBlueSeedImpair+ colorQuality + blueQuality + redQuality;
+        total =  diff_seed_attic * 3;
+        total += 64 - nbSeedPair;
+        total += nbSeedImpair;
+        total += nbBlueSeedImpair;
+        total += 64 - nbRedSeedImpair;
     }
-
+    return total;
 }
 
 /*int AI::evaluation(Board board, int maxPlayer, int depth){
