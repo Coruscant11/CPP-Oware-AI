@@ -49,23 +49,64 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         }
     }
 
-    if (totalCoupPossible >= 11) 
-        maxDepth = 9;
-    else if (totalCoupPossible >= 8)
-        maxDepth = 11;
-    else if (totalCoupPossible >= 5)
-        maxDepth = 13;
-    else if (totalCoupPossible >= 2)
-        maxDepth = 13;
-    else
-        maxDepth = 0;
+    switch(totalCoupPossible) {
+        case 16:
+            maxDepth = 9;
+            break;
+        case 15:
+            maxDepth = 9;
+            break;
+        case 14:
+            maxDepth = 9;
+            break;
+        case 13:
+            maxDepth = 9;
+            break;
+        case 12:
+            maxDepth = 10;
+            break;
+        case 11:
+            maxDepth = 10;
+            break;
+        case 10:
+            maxDepth = 11 ;
+            break;
+        case 9:
+            maxDepth = 11;
+            break;
+        case 8:
+            maxDepth = 12;
+            break;
+        case 7:
+            maxDepth = 13;
+            break;
+        case 6:
+            maxDepth = 13;
+            break;
+        case 5:
+            maxDepth = 14;
+            break;
+        case 4:
+            maxDepth = 15;
+            break;
+        case 3:
+            maxDepth = 15;
+            break;
+        case 2:
+            maxDepth = 15;
+            break;
+        case 1:
+            maxDepth = 0;
+            break;
+        default:
+            maxDepth = 8;
+            break;
+    }
 
-    cout << "Profondeur max : " << maxDepth +  3<< " pour " << totalCoupPossible << " coups" << endl;
+    cout << "Profondeur max : " << maxDepth + 1<< " pour " << totalCoupPossible << " coups" << endl;
 
     for (threadIndex = 0; threadIndex < THREAD_AMOUNT; threadIndex++) {
-        cout << "ti : " << threadIndex << endl;
         threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &cptHf, &values, &maxDepth] (int t) {
-            cout << "start thread " << t << endl;
             chrono::time_point<chrono::system_clock> startT, endT;
             startT = chrono::system_clock::now();
             for (int i = 0; i < indexsPerThreads[t].size(); i++) {
@@ -75,9 +116,6 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
                 values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -10000000, 10000000, cptCut, cptHf);
                 //values[indexs.colorIndex][indexs.holeIndex] = negamaxAlphaBeta(nextBoard, player, 0, maxDepth, cpt, -1000000, 1000000, cptCut);
             }
-            endT = chrono::system_clock::now();
-            chrono::duration<double> es = endT - startT;
-            cout << "end thread " << t << " : " << es.count() << "s" << endl;
         }, threadIndex);
     }
 
@@ -104,7 +142,7 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
 
     int alphaOrig = alpha;
 
-    auto currentHash = Hash::computeHash(board);
+    /*auto currentHash = Hash::computeHash(board);
     if (Hash::contains(currentHash)) {
         struct HashedBoard hbEntry = Hash::getValue(currentHash);
         if (hbEntry.depth >= depth) {
@@ -122,13 +160,12 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
                 return hbEntry.eval;
             }
         }
-    }
-
+    }*/
 
     if (depth == maxDepth || board.positionFinale()) {
         int eval = evaluation(board, maxPlayer, depth);
         return eval;
-    } 
+    }
 
     /*vector<EvaluatedMove> moves = generateMoves(board, maxPlayer, player, depth);
     sortMoves(moves, isMax);*/
@@ -190,11 +227,11 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
             if (moves[i].eval > numeric_limits<int>::min()) {
                 int eval = minimaxAlphaBeta(moves[i].move, maxPlayer, Engine::getNextPlayer(player), false, depth + 1, maxDepth, cpt, alpha, beta, cptCut, cptHf);
                 value = max(value, eval);
-            }
-            alpha = max(alpha, value);
-            if (beta <= alpha) {
-                cptCut->fetch_add(1);
-                break;
+                if (value >= beta) {
+                    cptCut->fetch_add(1);
+                    break;
+                }
+                alpha = max(alpha, value);
             }
         }
     }
@@ -204,16 +241,16 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
             if (moves[i].eval > numeric_limits<int>::min()) {
                 int eval = minimaxAlphaBeta(moves[i].move, maxPlayer, Engine::getNextPlayer(player), true, depth + 1, maxDepth, cpt, alpha, beta, cptCut, cptHf);
                 value = min(value, eval);
-            }
-            beta = min(beta, value);
-            if (beta <= alpha) {
-                cptCut->fetch_add(1);
-                break;
+                if (alpha >= value) {
+                    cptCut->fetch_add(1);
+                    break;
+                }
+                beta = min(beta, value);
             }
         }
     }
 
-    struct HashedBoard newHbEntry;
+    /*struct HashedBoard newHbEntry;
     newHbEntry.zobrist_key = currentHash;
     newHbEntry.eval = value;
     newHbEntry.depth = depth;
@@ -226,13 +263,13 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
     else {
         newHbEntry.flag = EXACT;
     }
-    Hash::add(currentHash, newHbEntry);
+    Hash::add(currentHash, newHbEntry);*/
 
     return value;
 }
 
 int AI::evaluation(Board board, int maxPlayer, int depth) {
-    if (board.isWinning(maxPlayer))
+    /*if (board.isWinning(maxPlayer))
         return 10000000 - depth;
     if (board.isLoosing(maxPlayer))
         return -10000000 + depth;
@@ -246,12 +283,19 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
     int qualitySum = 0;
     int qualityWeak = 0;
     int qualityOffense = 0;
+    int qualityAmount = 0;
 
     int iaAcc = 0;
     int playerAcc = 0;
     for (int hole = 0; hole < 16; hole++) {
         int sum = board.blueHoles[hole] + board.redHoles[hole];
         int player = hole%2;
+
+        if (hole%2 == maxPlayer)
+            iaAcc += sum;
+        else
+            playerAcc += sum;
+        qualityAmount = iaAcc - playerAcc;
 
         if (sum > 3) {
             if (hole%2 == maxPlayer) {
@@ -313,7 +357,61 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
     }
     if (maxPlayer == 1)
         quality = (1 * qualityAttic) + (1 * qualityWeak) + (1 * qualityEmpty) + (1 * qualitySum) + (1 * qualityOffense);
-    return quality;
+    quality = qualityAttic + qualityAmount + qualityWeak;
+    return quality;*/
+
+    if (board.isWinning(maxPlayer))
+        return 10000000 - depth;
+    if (board.isLoosing(maxPlayer))
+        return -10000000 + depth;
+    if (board.draw())
+        return 0;
+
+    int opponent = (maxPlayer+1)%2;
+    int diff_seed_attic = board.getAtticPlayer(maxPlayer) - board.getAtticPlayer(opponent);
+
+    int nbRedSeedPair = board.redHoles[0]+
+                            board.redHoles[2]+
+                            board.redHoles[4]+
+                            board.redHoles[6]+
+                            board.redHoles[8]+
+                            board.redHoles[10]+
+                            board.redHoles[12]+
+                            board.redHoles[14];
+    int nbBlueSeedPair = board.blueHoles[0]+
+                            board.blueHoles[2]+
+                            board.blueHoles[4]+
+                            board.blueHoles[6]+
+                            board.blueHoles[8]+
+                            board.blueHoles[10]+
+                            board.blueHoles[12]+
+                            board.blueHoles[14];
+    int nbSeedPair = nbRedSeedPair + nbBlueSeedPair;
+
+    int nbRedSeedImpair = board.redHoles[1]+
+                            board.redHoles[3]+
+                            board.redHoles[5]+
+                            board.redHoles[7]+
+                            board.redHoles[9]+
+                            board.redHoles[11]+
+                            board.redHoles[13]+
+                            board.redHoles[15];
+    int nbBlueSeedImpair = board.blueHoles[1]+
+                             board.blueHoles[3]+
+                             board.blueHoles[5]+
+                             board.blueHoles[7]+
+                             board.blueHoles[9]+
+                             board.blueHoles[11]+
+                             board.blueHoles[13]+
+                             board.blueHoles[15];
+    int nbSeedImpair = nbRedSeedImpair + nbBlueSeedImpair;
+
+    if (maxPlayer == 0){
+        return diff_seed_attic*2 + (64-nbSeedImpair) + nbSeedPair + nbBlueSeedPair;
+    }
+    else{
+        return diff_seed_attic*2 + (64-nbSeedPair) + nbSeedImpair + nbBlueSeedImpair;
+    }
 }
 
 /*int AI::evaluation(Board board, int maxPlayer, int depth){

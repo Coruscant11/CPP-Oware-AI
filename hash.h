@@ -24,6 +24,7 @@ public:
 
     static void init_table()
     {
+        TranspositionTable.reserve(100000000);
         int i,k,j;
         for(i = 0;i < 2; i++){
             for(j = 0;j < 16; j++){
@@ -60,12 +61,12 @@ public:
     }
 
     static struct HashedBoard getValue(long long int hashcode) {
-        std::shared_lock lock(mutex_);
+        //std::shared_lock lock(mutex_);
         return TranspositionTable[hashcode];
     }
 
     static bool contains(long long int hashcode) {
-        std::shared_lock lock(mutex_);
+        //std::shared_lock lock(mutex_);
         return TranspositionTable.contains(hashcode);
     }
 };
