@@ -1,4 +1,4 @@
-#include <bits/stdc++.h> 
+#include <bits/stdc++.h>
 #include "Board.h"
 #include <unordered_map>
 #include <shared_mutex>
@@ -60,12 +60,12 @@ public:
     }
 
     static struct HashedBoard getValue(long long int hashcode) {
-        std::shared_lock lock(mutex_);
+        //std::shared_lock lock(mutex_);
         return TranspositionTable[hashcode];
     }
 
     static bool contains(long long int hashcode) {
-        std::shared_lock lock(mutex_);
+        //std::shared_lock lock(mutex_);
         return TranspositionTable.contains(hashcode);
     }
 };

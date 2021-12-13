@@ -10,4 +10,5 @@ add_executable(AwaleCustom
         AI.cpp
         AI.h
         Engine.cpp
-        Engine.h)
+        Engine.h
+        hash.h)
