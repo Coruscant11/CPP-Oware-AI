@@ -19,7 +19,7 @@ public:
     inline static long long ZobrisHoleTable[2][16][64];
     inline static long long ZobrisAtticTable[2][64];
 
-    inline static unordered_map<long long, struct HashedBoard> TranspositionTable;
+    inline static unordered_map<long long int, struct HashedBoard> TranspositionTable;
     inline static std::shared_mutex mutex_;
 
     static void init_table()
@@ -42,7 +42,7 @@ public:
         }
     }
 
-    static long long computeHash(Board b)
+    static long long int computeHash(Board b)
     {
         long long int h=0;
         for(int j=0;j<16;j++) {
@@ -68,5 +68,10 @@ public:
     static bool contains(long long int hashcode) {
         //std::shared_lock lock(mutex_);
         return TranspositionTable.contains(hashcode);
+    }
+
+    static void clear() {
+        std::unique_lock lock(mutex_);
+        TranspositionTable.clear();
     }
 };

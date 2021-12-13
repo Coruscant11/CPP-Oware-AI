@@ -69,31 +69,31 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
             maxDepth = 10;
             break;
         case 10:
-            maxDepth = 11 ;
+            maxDepth = 10 ;
             break;
         case 9:
             maxDepth = 11;
             break;
         case 8:
-            maxDepth = 12;
+            maxDepth = 11;
             break;
         case 7:
-            maxDepth = 13;
+            maxDepth = 12;
             break;
         case 6:
-            maxDepth = 13;
+            maxDepth = 12;
             break;
         case 5:
-            maxDepth = 14;
+            maxDepth = 13;
             break;
         case 4:
-            maxDepth = 15;
+            maxDepth = 13;
             break;
         case 3:
-            maxDepth = 15;
+            maxDepth = 13;
             break;
         case 2:
-            maxDepth = 15;
+            maxDepth = 13;
             break;
         case 1:
             maxDepth = 0;
@@ -103,33 +103,42 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
             break;
     }
 
-    cout << "Profondeur max : " << maxDepth + 1<< " pour " << totalCoupPossible << " coups" << endl;
+    cout << "Lancement du tour..." << endl;
 
-    for (threadIndex = 0; threadIndex < THREAD_AMOUNT; threadIndex++) {
-        threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &cptHf, &values, &maxDepth] (int t) {
-            chrono::time_point<chrono::system_clock> startT, endT;
-            startT = chrono::system_clock::now();
-            for (int i = 0; i < indexsPerThreads[t].size(); i++) {
-                struct Array2DIndex indexs = indexsPerThreads[t][i];
-                Board nextBoard = board;
-                nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
-                values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -10000000, 10000000, cptCut, cptHf);
-                //values[indexs.colorIndex][indexs.holeIndex] = negamaxAlphaBeta(nextBoard, player, 0, maxDepth, cpt, -1000000, 1000000, cptCut);
-            }
-        }, threadIndex);
-    }
-
-    for (int i = 0; i < THREAD_AMOUNT; i++) {
-        if (threads[i].joinable()) {
-            threads[i].join();
+    end = chrono::system_clock::now();
+    chrono::duration<double> elapsed_seconds = end - start;
+    while(elapsed_seconds.count() <= 0.6) {
+        for (threadIndex = 0; threadIndex < THREAD_AMOUNT; threadIndex++) {
+            threads[threadIndex] = thread([&tIndex, &indexsPerThreads, &board, &player, &cpt, &cptCut, &cptHf, &values, &maxDepth] (int t) {
+                for (int i = 0; i < indexsPerThreads[t].size(); i++) {
+                    struct Array2DIndex indexs = indexsPerThreads[t][i];
+                    Board nextBoard = board;
+                    nextBoard.playMove(player, indexs.holeIndex, indexs.colorIndex == 0 ? 'R' : 'B');
+                    values[indexs.colorIndex][indexs.holeIndex] = minimaxAlphaBeta(nextBoard, player, Engine::getNextPlayer(player), false, 0, maxDepth, cpt, -10000000, 10000000, cptCut, cptHf);
+                }
+            }, threadIndex);
         }
-    }
 
+        for (int i = 0; i < THREAD_AMOUNT; i++) {
+            if (threads[i].joinable()) {
+                threads[i].join();
+            }
+        }
+        maxDepth++;
+        end = chrono::system_clock::now();
+        elapsed_seconds = end - start;
+        if (elapsed_seconds.count() < 0.3) {
+            maxDepth++;
+        }
+        cout << "d : " << maxDepth << " -> " << elapsed_seconds.count() << "s" << " (";
+        cout << Hash::TranspositionTable.size() << ")" << endl;
+    }
+    cout << "Profondeur max : " << maxDepth + 1<< " pour " << totalCoupPossible << " coups" << endl;
     cout << cpt->load() << " minmaxs, " << cptCut->load() << " cuts, " << cptHf->load() << " nodes reutilisees via la TP." << endl;
     /*for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
     cout << endl;*/
     end = chrono::system_clock::now();
-    chrono::duration<double> elapsed_seconds = end - start;
+    elapsed_seconds = end - start;
     cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
     delete cpt;
     delete cptCut;
@@ -142,12 +151,17 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
 
     int alphaOrig = alpha;
 
+    if (depth == maxDepth || board.positionFinale()) {
+        int eval = evaluation(board, maxPlayer, depth);
+        return eval;
+    }
+
     /*auto currentHash = Hash::computeHash(board);
     if (Hash::contains(currentHash)) {
         struct HashedBoard hbEntry = Hash::getValue(currentHash);
         if (hbEntry.depth >= depth) {
-            cptHf->fetch_add(1);
             if (hbEntry.flag = EXACT) {
+                cptHf->fetch_add(1);
                 return hbEntry.eval;
             }
             else if (hbEntry.flag == LOWERBOUND) {
@@ -157,18 +171,12 @@ int AI::minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int
                 beta = min(beta, hbEntry.eval);
             }
             if (beta <= alpha) {
+                cptHf->fetch_add(1);
                 return hbEntry.eval;
             }
         }
     }*/
 
-    if (depth == maxDepth || board.positionFinale()) {
-        int eval = evaluation(board, maxPlayer, depth);
-        return eval;
-    }
-
-    /*vector<EvaluatedMove> moves = generateMoves(board, maxPlayer, player, depth);
-    sortMoves(moves, isMax);*/
     struct EvaluatedMove moves[32];
     int moveIndex = 0;
     for (int color = 0; color < 2; color++) {
@@ -407,10 +415,10 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
     int nbSeedImpair = nbRedSeedImpair + nbBlueSeedImpair;
 
     if (maxPlayer == 0){
-        return diff_seed_attic*2 + (64-nbSeedImpair) + nbSeedPair + nbBlueSeedPair;
+        return diff_seed_attic*3 + (64-nbSeedImpair) + nbSeedPair + nbBlueSeedPair;
     }
     else{
-        return diff_seed_attic*2 + (64-nbSeedPair) + nbSeedImpair + nbBlueSeedImpair;
+        return diff_seed_attic*3 + (64-nbSeedPair) + nbSeedImpair + nbBlueSeedImpair;
     }
 }
 
