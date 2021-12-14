@@ -6,7 +6,7 @@
 #define LOWERBOUND 1
 #define UPPERBOUND 2
 
-#define THREAD_AMOUNT 16
+#define THREAD_AMOUNT 8
 
 AI::AI() {
 
@@ -415,10 +415,10 @@ int AI::evaluation(Board board, int maxPlayer, int depth) {
     int nbSeedImpair = nbRedSeedImpair + nbBlueSeedImpair;
 
     if (maxPlayer == 0){
-        return diff_seed_attic*3 + (64-nbSeedImpair) + nbSeedPair + nbBlueSeedPair;
+        return diff_seed_attic*3 + (64-nbSeedImpair) + (0*nbSeedPair) + (nbBlueSeedPair);
     }
     else{
-        return diff_seed_attic*3 + (64-nbSeedPair) + nbSeedImpair + nbBlueSeedImpair;
+        return diff_seed_attic*3 + (64-nbSeedPair) + (0*nbSeedImpair) + (nbBlueSeedImpair);
     }
 }
 
