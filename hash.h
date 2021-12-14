@@ -24,7 +24,6 @@ public:
 
     static void init_table()
     {
-        TranspositionTable.reserve(100000000);
         int i,k,j;
         for(i = 0;i < 2; i++){
             for(j = 0;j < 16; j++){
