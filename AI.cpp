@@ -72,34 +72,34 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
             maxDepth = 10 ;
             break;
         case 9:
-            maxDepth = 11;
+            maxDepth = 10;
             break;
         case 8:
-            maxDepth = 11;
+            maxDepth = 10;
             break;
         case 7:
-            maxDepth = 12;
+            maxDepth = 10;
             break;
         case 6:
-            maxDepth = 12;
+            maxDepth = 10;
             break;
         case 5:
-            maxDepth = 13;
+            maxDepth = 10;
             break;
         case 4:
-            maxDepth = 13;
+            maxDepth = 10;
             break;
         case 3:
-            maxDepth = 13;
+            maxDepth = 10;
             break;
         case 2:
-            maxDepth = 13;
+            maxDepth = 10;
             break;
         case 1:
             maxDepth = 0;
             break;
         default:
-            maxDepth = 8;
+            maxDepth = 10;
             break;
     }
 
@@ -130,10 +130,10 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         if (elapsed_seconds.count() < 0.3) {
             maxDepth++;
         }
-        cout << "d : " << maxDepth << " -> " << elapsed_seconds.count() << "s" << " (";
+        cout << "d : " << maxDepth-1 << " -> " << elapsed_seconds.count() << "s" << " (";
         cout << Hash::TranspositionTable.size() << ")" << endl;
     }
-    cout << "Profondeur max : " << maxDepth + 1<< " pour " << totalCoupPossible << " coups" << endl;
+    cout << "Profondeur max : " << maxDepth << " pour " << totalCoupPossible << " coups" << endl;
     cout << cpt->load() << " minmaxs, " << cptCut->load() << " cuts, " << cptHf->load() << " nodes reutilisees via la TP." << endl;
     /*for (int x = 0; x < 2; x++) { for (int y = 0; y < 16; y++) { cout << values[x][y] << " "; } cout << endl;}
     cout << endl;*/
