@@ -35,7 +35,8 @@ private:
     static int evaluation(Board board, int player, int depth);
     static int evaluation_ju_first(Board board, int maxPlayer, int depth);
     static int evaluation_ju_second(Board board, int maxPlayer, int depth);
-    static int evaluation_ju_amelioration(Board board, int maxPlayer, int depth);
+    static int evaluation_ju_third(Board board, int maxPlayer, int depth);
+    static int evaluation_ju_fourth(Board board, int maxPlayer, int depth);
 
     static struct Array2DIndex indexMaxValueArray(int values[][16]);
 };
