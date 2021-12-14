@@ -1,2 +1,10 @@
 # Project exclude paths
 /cmake-build-debug/
+main.exe
+CMakeLists.txt
+.vscode/settings.json
+.vscode/tasks.json
+*.exe
+*.json
+AI.exe
+.vscode/
