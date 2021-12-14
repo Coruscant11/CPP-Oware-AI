@@ -6,7 +6,7 @@
 #define LOWERBOUND 1
 #define UPPERBOUND 2
 
-#define THREAD_AMOUNT 8
+#define THREAD_AMOUNT 4
 
 AI::AI() {
 
