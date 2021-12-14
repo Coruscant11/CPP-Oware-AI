@@ -6,7 +6,7 @@
 #define LOWERBOUND 1
 #define UPPERBOUND 2
 
-#define THREAD_AMOUNT 4
+#define THREAD_AMOUNT 16
 
 AI::AI() {
 
@@ -130,8 +130,8 @@ struct Array2DIndex AI::decisionMinMax(int player, Board board) {
         if (elapsed_seconds.count() < 0.3) {
             maxDepth++;
         }
-        cout << "d : " << maxDepth-1 << " -> " << elapsed_seconds.count() << "s" << " (";
-        cout << Hash::TranspositionTable.size() << ")" << endl;
+        //cout << "d : " << maxDepth-1 << " -> " << elapsed_seconds.count() << "s" << " (";
+        //cout << Hash::TranspositionTable.size() << ")" << endl;
     }
     cout << "Profondeur max : " << maxDepth << " pour " << totalCoupPossible << " coups" << endl;
     cout << cpt->load() << " minmaxs, " << cptCut->load() << " cuts, " << cptHf->load() << " nodes reutilisees via la TP." << endl;
