@@ -21,7 +21,7 @@ private:
 	int actualPlayer;
     int aiPlayer;
 
-	struct Choice askChoice(int player);
+	struct Choice askChoice(int player, Board b);
     struct Choice decisionMinMaxToChoice(struct Array2DIndex decision);
 	void updateActualPlayer();
 	void displayWinner(int winner);

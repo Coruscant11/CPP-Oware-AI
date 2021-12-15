@@ -53,7 +53,7 @@ void Engine::run() {
 				cout << cYELLOWPLAY << "IA PLAY : " << choice.hole+1 << choice.color << cRESET << endl;
         }
         else {
-            choice = askChoice(actualPlayer);
+            choice = askChoice(actualPlayer, gameBoard);
         }
 
         gameBoard.playMove(actualPlayer, choice.hole, choice.color);
@@ -70,21 +70,24 @@ void Engine::run() {
 	}
 }
 
-struct Choice Engine::askChoice(int player) {
+struct Choice Engine::askChoice(int player, Board b) {
 	if (player == 0) { cout << cGREEN << "Choose an odd hole and a color (ex: 13 B) : " << cRESET << endl; }
 	else if (player == 1) { cout << cYELLOW << "Choose an even hole and a color (ex: 12 R) : " << cRESET << endl; }
 
 	struct Choice choice;
 	choice.hole = -1;
 	choice.color = 'a';
-
-	while (!((choice.hole > 0 && choice.hole <= 16) &&
-		((player == 0 && choice.hole % 2 == 1) ||
-		 (player == 1 && choice.hole % 2 == 0)) &&
-		(choice.color == 'B' || choice.color == 'R')))
+    bool alreadyPlayed = false;
+	while (true)
 	{
 		cin >> choice.hole;
 		cin >> choice.color;
+        if (b.isPossibleMove(player, choice.hole - 1, choice.color)) {
+            break;
+        }
+        else {
+            cout << "Coup invalide !" << endl;
+        }
 	}
 	
 	choice.hole--;
