@@ -11,7 +11,6 @@
 #include <ctime>
 #include "Board.h"
 
-
 using namespace std;
 
 struct Array2DIndex {
