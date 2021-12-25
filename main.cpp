@@ -6,7 +6,6 @@
 using namespace std;
 
 long long int ZobrisTable[2][16][64];
-int i = 2;
 
 int main() {
     Hash::init_table();
