@@ -29,7 +29,7 @@ public:
     ~AI();
     static struct Array2DIndex decisionMinMax(int player, Board board);
 private:
-    static int minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut, atomic<int> *cptHf); 
+    static int minimaxAlphaBeta(Board board, int maxPlayer, int player, bool isMax, int depth, int maxDepth, int &cpt, int alpha, int beta, int &cptCut); 
     //static int negamaxAlphaBeta(Board board, int player, int depth, int maxDepth, atomic<int> *cpt, int alpha, int beta, atomic<int> *cptCut);
     static int evaluation(Board board, int player, int depth);
     static struct Array2DIndex indexMaxValueArray(int values[][16]);
